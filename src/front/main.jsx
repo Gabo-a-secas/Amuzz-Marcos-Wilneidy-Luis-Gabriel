@@ -5,12 +5,13 @@ import { RouterProvider } from "react-router-dom";  // Import RouterProvider to 
 import { router } from "./routes";  // Import the router configuration
 import { StoreProvider } from './hooks/useGlobalReducer';  // Import the StoreProvider for global state management
 import { BackendURL } from './components/BackendURL';
+import  Home  from './pages/Home';
 
 const Main = () => {
     
     if(! import.meta.env.VITE_BACKEND_URL ||  import.meta.env.VITE_BACKEND_URL == "") return (
         <React.StrictMode>
-              <BackendURL/ >
+              <Home />
         </React.StrictMode>
         );
     return (
