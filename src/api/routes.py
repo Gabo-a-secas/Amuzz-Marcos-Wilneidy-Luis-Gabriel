@@ -1,24 +1,37 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
-import requests
 from flask import Blueprint, request, jsonify
+import requests
 from api.models import db, User
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 api = Blueprint('api', __name__)
-
-# Allow CORS requests to this API
 CORS(api)
 
+# Ruta de prueba
 @api.route('/hello', methods=['POST', 'GET'])
 def handle_hello():
-    response_body = {
-        "message": "Hello! I'm a message that came from the backend, check the network tab on the google inspector and you will see the GET request"
-    }
-    return jsonify(response_body), 200
+    return jsonify({
+        "message": "Hello! I'm a message that came from the backend."
+    }), 200
 
+# Ruta solo para admin (ejemplo: usuarios activos)
+@api.route('/admin-zone', methods=['GET'])
+@jwt_required()
+def admin_zone():
+    user = get_jwt_identity()
+    user_from_db = User.query.get(user['id'])
+
+    if not user_from_db:
+        return jsonify({"msg": "Acceso denegado"}), 403
+
+    return jsonify({"msg": f"Bienvenido, admin {user['email']}"}), 200
+
+# JAMENDO API - obtener música por estado de ánimo
 JAMENDO_CLIENT_ID = "64b5cce9"
 
 @api.route('/music/mood/<string:mood>', methods=['GET'])
