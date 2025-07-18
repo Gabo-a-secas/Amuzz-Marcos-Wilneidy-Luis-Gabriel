@@ -23,7 +23,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 10; /* Aumentado para estar sobre el video pero bajo el navbar */
+  z-index: 10;
   color: white;
   text-align: center;
 }
@@ -34,8 +34,18 @@
   text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
 }
 
-/* Estilos adicionales para el navbar */
+footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  z-index: 20;
+  background: transparent;
+  text-align: center;
+  color: white;
+  padding: 1rem 0;
+}
+
 nav {
-  backdrop-filter: blur(10px); /* Efecto blur opcional */
-  background-color: rgba(190, 221, 184, 0.371) !important; /* Semi-transparente */
+  backdrop-filter: blur(10px);
+  background-color: rgba(190, 221, 184, 0.371) !important;
 }
