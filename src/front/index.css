@@ -1,3 +1,23 @@
+.video-background {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.video-background video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  z-index: 0;
+}
+
 .contenido-encima {
   position: absolute;
   top: 50%;
@@ -12,4 +32,23 @@
   font-size: 4rem;
   font-weight: bold;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+}
+
+footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  z-index: 20;
+  background: transparent;
+  text-align: center;
+  color: white;
+  padding: 1rem 0;
+}
+
+.home-logo {
+  width: 200px;
+}
+
+.navbar-logo {
+  width: 50px;
 }

@@ -15,7 +15,7 @@ const Navbar = () => {
       <nav className="navbar-sidebar">
         <div className="navbar-logo">
           <Link to="/" className="navbar-logo-link">
-            <h2 className="navbar-logo-text">AMUZZ</h2>
+            <img className="navbar-logo" src="/amuzz_logo.png" alt="amuzz_logo" />
           </Link>
         </div>
 

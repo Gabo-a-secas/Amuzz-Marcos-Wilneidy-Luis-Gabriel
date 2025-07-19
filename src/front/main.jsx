@@ -2,8 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import './navBar-Modal.css';
-import './footer.css'
-import './videobackground.css'
 import { RouterProvider } from 'react-router-dom';
 import { StoreProvider } from './hooks/useGlobalReducer';
 import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
