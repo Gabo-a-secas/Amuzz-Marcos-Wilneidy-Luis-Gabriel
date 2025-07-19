@@ -12,6 +12,7 @@ const Home = () => {
         Tu navegador no soporta video.
       </video>
       <div className="contenido-encima">
+        <img src="/amuzz_logo.png" alt="amuzz_logo"/>
         <h1>AMUZZ</h1>
         <button
         onClick={() => navigate("/Mood")}
