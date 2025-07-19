@@ -20,15 +20,7 @@ const Navbar = () => {
         </div>
 
         <ul className="navbar-nav">
-          <li className="navbar-nav-item">
-            <Link to="/" className="navbar-nav-link">
-              <i className="bi bi-house-door navbar-nav-icon"></i>
-              Home
-            </Link>
-          </li>
-          
           <hr className="navbar-divider" />
-          
           {isHomePage && (
             <>
               <li className="navbar-nav-item">
