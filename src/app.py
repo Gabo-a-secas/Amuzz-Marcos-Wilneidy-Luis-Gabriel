@@ -25,6 +25,8 @@ with app.app_context():
     print("Base de datos creada")
     setup_commands(app)
 
+app.register_blueprint(api, url_prefix='/api')
+
 # Manejo de errores
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):

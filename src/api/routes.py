@@ -19,7 +19,7 @@ def handle_hello():
         "message": "Hello! I'm a message that came from the backend."
     }), 200
 
-# Ruta solo para admin (ejemplo: usuarios activos)
+# Ruta solo para admin 
 @api.route('/admin-zone', methods=['GET'])
 @jwt_required()
 def admin_zone():
