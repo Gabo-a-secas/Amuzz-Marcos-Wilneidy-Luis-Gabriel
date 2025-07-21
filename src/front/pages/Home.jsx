@@ -12,7 +12,7 @@ const Home = () => {
         Tu navegador no soporta video.
       </video>
       <div className="contenido-encima">
-        <h1>AMUZZ</h1>
+        <img className="home-logo" src="/amuzz_logo.png" alt="amuzz_logo"/>
         <button
         onClick={() => navigate("/Mood")}
         className="bg-white text-purple-700 px-6 py-3 rounded-full shadow-lg hover:bg-purple-100 transition"
