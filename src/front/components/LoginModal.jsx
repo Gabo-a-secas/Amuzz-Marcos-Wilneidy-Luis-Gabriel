@@ -11,7 +11,7 @@ const LoginModal = ({ show, onClose }) => {
   const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
-    e.preventDefault(); s
+    e.preventDefault();
     try {
       const res = await fetch(`${BackendURL}/token`, {
         method: "POST",
@@ -23,7 +23,7 @@ const LoginModal = ({ show, onClose }) => {
       if (res.ok) {
         sessionStorage.setItem("token", data.token);
         dispatch({ type: "SET_USER", payload: data });
-        onClose(); // cerrar modal
+        onClose();
       } else {
         setError(data.message || "Error en el login");
       }
