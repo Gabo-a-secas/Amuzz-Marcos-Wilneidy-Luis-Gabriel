@@ -1,21 +1,21 @@
 import { useNavigate } from "react-router-dom";
 
 const moods = [
-  { label: "Feliz", genre: "pop"},
-  { label: "Triste", genre: "lofi"},
-  { label: "Ansioso", genre: "ambient"},
-  { label: "Enérgico", genre: "metal"},
-  { label: "Relajado", genre: "jazz"},
-  { label: "Fiesta", genre: "electronic"},
-  { label: "Latin", genre: "latina"},
-  { label: "Random", genre: ""},
+  { label: "Feliz", genre: "pop", mood: "happy" },
+  { label: "Triste", genre: "lofi", mood: "sad" },
+  { label: "Ansioso", genre: "ambient", mood: "anxiety" },
+  { label: "Enérgico", genre: "metal", mood: "energic" },
+  { label: "Relajado", genre: "jazz", mood: "relax" },
+  { label: "Fiesta", genre: "electronic", mood: "party" },
+  { label: "Latin", genre: "latina", mood: "latin" },
+  { label: "Random", genre: "", mood: "" },
 ];
 
 const Mood = () => {
   const navigate = useNavigate();
 
-  const handleSelectMood = (label) => {
-    navigate("/results", { state: { label } });
+  const handleSelectMood = (moodObj) => {
+    navigate("/results", { state: { moodObj } });
   };
 
   return (
@@ -28,14 +28,13 @@ const Mood = () => {
       <div className="contenido-encima">
         <h2>¿Cómo te sientes hoy?</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          {moods.map(({ label, genre}) => (
+          {moods.map((moodObj) => (
             <button
-              key={genre}
-              onClick={() => handleSelectMood(label)}
+              key={moodObj.genre}
+              onClick={() => handleSelectMood(moodObj)}
               className="w-48 h-48 flex flex-col justify-center items-center border-2 border-white rounded-xl shadow-md hover:bg-white/10 transition text-black"
             >
-            
-              <span className="text-xl font-semibold">{label}</span>
+              <span className="text-xl font-semibold">{moodObj.label}</span>
             </button>
           ))}
         </div>

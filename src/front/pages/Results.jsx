@@ -1,22 +1,75 @@
 import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import useGlobalReducer from "../hooks/useGlobalReducer";
 
 const Results = () => {
   const location = useLocation();
-  const label = location.state?.label;
+  const moodObj = location.state?.moodObj;
+  const mood = moodObj?.mood;
+  const label = moodObj?.label;
+
+  const [tracks, setTracks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { dispatch } = useGlobalReducer();
+
+  useEffect(() => {
+    if (!mood) return;
+
+    fetch(`/api/music/mood/${mood}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setTracks(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error al traer la música:", err);
+        setLoading(false);
+      });
+  }, [mood]);
 
   return (
-    <div className="video-background">
+    <div className="video-background pb-40">
       <video autoPlay loop muted playsInline>
         <source src="/fondo.mp4" type="video/mp4" />
         Tu navegador no soporta video.
       </video>
 
-    <div className="contenido-encima">
-      <h2 className="text-3xl font-bold text-purple-700 mb-4">
-        Aquí hay música que te puede gustar según: {label}
-      </h2>
-      {/* AQUI VA LA INFO DE API GABO//MARCOS */}
-    </div>
+      <div className="contenido-encima p-4 text-white bg-black bg-opacity-50 min-h-screen">
+        <h2 className="text-3xl font-bold text-purple-300 mb-4">
+          Música sugerida según: {label}
+        </h2>
+
+        {loading ? (
+          <p className="text-lg">🎧 Cargando música...</p>
+        ) : tracks.length === 0 ? (
+          <p className="text-lg">😔 No encontramos música para ese mood.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tracks.map((track) => (
+              <div
+                key={track.id}
+                className="bg-white bg-opacity-10 p-4 rounded-lg shadow-lg flex flex-col items-center"
+              >
+                <img
+                  src={track.image}
+                  alt={track.name}
+                  className="w-full h-48 object-cover rounded mb-2"
+                />
+                <h3 className="text-xl font-semibold">{track.name}</h3>
+                <p className="text-sm text-gray-300">{track.artist}</p>
+                <button
+                  onClick={() =>
+                    dispatch({ type: "SET_CURRENT_TRACK", payload: track })
+                  }
+                  className="mt-2 bg-purple-600 text-white px-4 py-2 rounded-full"
+                >
+                  Escuchar
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

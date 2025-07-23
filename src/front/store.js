@@ -1,7 +1,7 @@
 export const initialStore = () => ({
   user: null,
   isAuthenticated: false,
-  // ...otros estados globales
+  currentTrack: null, // << nuevo
 });
 
 export default function storeReducer(state, action) {
@@ -18,7 +18,11 @@ export default function storeReducer(state, action) {
         user: null,
         isAuthenticated: false,
       };
-    // ...otros casos
+    case "SET_CURRENT_TRACK":
+      return {
+        ...state,
+        currentTrack: action.payload,
+      };
     default:
       return state;
   }

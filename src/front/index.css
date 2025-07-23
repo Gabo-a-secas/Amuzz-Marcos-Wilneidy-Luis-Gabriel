@@ -1,8 +1,12 @@
 .video-background {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100vh;
+  z-index: 0;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .video-background video {
@@ -18,6 +22,26 @@
   z-index: 0;
 }
 
+#three-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
 .contenido-encima {
   position: absolute;
   top: 50%;
@@ -26,13 +50,35 @@
   z-index: 10;
   color: white;
   text-align: center;
+  pointer-events: auto;
 }
 
 .contenido-encima h1 {
   font-size: 4rem;
   font-weight: bold;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
+
+.home-logo {
+  width: 200px;
+  margin-right: 1rem;
+  margin-top: 0.9rem;
+}
+
+.fixed-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  padding: 1rem;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 
 footer {
   position: absolute;
@@ -45,10 +91,48 @@ footer {
   padding: 1rem 0;
 }
 
-.home-logo {
-  width: 200px;
-}
-
 .navbar-logo {
   width: 50px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 300px;
+  position: relative;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.modal-form input {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+}
+
+.error-message {
+  color: red;
+  margin-top: 0.5rem;
+}
+
+.close-button {
+  margin-top: 1rem;
+  background: #ccc;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
 }
