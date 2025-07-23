@@ -28,47 +28,70 @@ with app.app_context():
 app.register_blueprint(api, url_prefix='/api')
 
 # Manejo de errores
+
+
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
 # Ruta raíz
+
+
 @app.route('/')
 def home():
     return jsonify({"message": "Welcome to the Auth API"})
 
 # Obtener usuarios
+
+
 @app.route('/users', methods=['GET'])
 def get_users():
     users = db.session.execute(db.select(User)).scalars().all()
     return jsonify([user.serialize() for user in users]), 200
 
 # Registro de usuario
+
+
 @app.route('/register', methods=['POST'])
 def register_user():
     try:
         data = request.get_json()
 
         full_name = data.get("full_name")
+        username = data.get("username")
         email = data.get("email")
+        date_of_birth = data.get("date_of_birth")
         password = data.get("password")
         confirm_password = data.get("confirm_password")
 
-        if not full_name or not email or not password or not confirm_password:
+        if not all([full_name, username, email, date_of_birth, password, confirm_password]):
             return jsonify({"message": "Todos los campos son obligatorios"}), 400
 
         if password != confirm_password:
             return jsonify({"message": "Las contraseñas no coinciden"}), 400
 
-        existing_user = db.session.execute(
+        existing_user_email = db.session.execute(
             db.select(User).filter_by(email=email)
         ).scalar_one_or_none()
 
-        if existing_user:
+        if existing_user_email:
             return jsonify({"message": "Este correo ya está registrado"}), 409
 
+        existing_user_username = db.session.execute(
+            db.select(User).filter_by(username=username)
+        ).scalar_one_or_none()
+
+        if existing_user_username:
+            return jsonify({"message": "Este username ya está en uso"}), 409
+
         hashed_password = generate_password_hash(password)
-        new_user = User(full_name=full_name, email=email, password_hash=hashed_password)
+        new_user = User(
+            full_name=full_name,
+            username=username,
+            email=email,
+            date_of_birth=datetime.strptime(date_of_birth, '%Y-%m-%d').date(),
+            password_hash=hashed_password
+        )
         db.session.add(new_user)
         db.session.commit()
 
@@ -80,6 +103,8 @@ def register_user():
         return jsonify({"message": "Ocurrió un error durante el registro"}), 500
 
 # Login de usuario
+
+
 @app.route('/token', methods=['POST'])
 def login_user():
     try:
@@ -98,8 +123,10 @@ def login_user():
         if not user or not check_password_hash(user.password_hash, password):
             return jsonify({"message": "Credenciales inválidas"}), 401
 
-        token = create_access_token(identity={"id": user.id, "email": user.email})
-        expires_in = int(app.config['JWT_ACCESS_TOKEN_EXPIRES'].total_seconds())
+        token = create_access_token(
+            identity={"id": user.id, "email": user.email})
+        expires_in = int(
+            app.config['JWT_ACCESS_TOKEN_EXPIRES'].total_seconds())
 
         return jsonify({
             "message": "Login exitoso",
@@ -112,7 +139,7 @@ def login_user():
     except Exception as e:
         print(f'Error durante el login: {e}')
         return jsonify({"message": "Ocurrió un error durante el login"}), 500
-    
+
 
 # Ruta protegida
 @app.route('/protected', methods=['GET'])
@@ -120,6 +147,7 @@ def login_user():
 def protected():
     identity = get_jwt_identity()
     return jsonify({"message": f"Hola, {identity['email']}"}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=3001)
