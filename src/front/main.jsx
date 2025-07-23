@@ -9,36 +9,13 @@ import Layout from './pages/Layout';
 import Home from './pages/Home';
 import Mood from './pages/Mood';
 import Results from './pages/Results';
-import Navbar from './components/Navbar';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />} errorElement={<h1>No encontrado 😢</h1>}>
-
-     
-      <Route index element={
-        <>
-          <Navbar />
-          <Home />
-        </>
-      } />
-
-      
-      <Route path="mood" element={
-        <>
-          <Navbar />
-          <Mood />
-        </>
-      } />
-
-      
-      <Route path="results" element={
-        <>
-          <Navbar />
-          <Results />
-        </>
-      } />
-
+      <Route index element={<Home />} />
+      <Route path="mood" element={<Mood />} />
+      <Route path="results" element={<Results />} />
     </Route>
   )
 );
