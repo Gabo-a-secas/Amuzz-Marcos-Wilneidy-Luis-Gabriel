@@ -102,7 +102,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
     setErrors({});
 
     try {
-      const response = await fetch(`${BackendURL}/register`, {
+      const response = await fetch(`${BackendURL}/api/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

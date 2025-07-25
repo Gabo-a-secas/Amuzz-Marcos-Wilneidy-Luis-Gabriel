@@ -56,7 +56,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
     setErrors({});
 
     try {
-      const response = await fetch(`${BackendURL}/token`, {
+      const response = await fetch(`${BackendURL}/api/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
