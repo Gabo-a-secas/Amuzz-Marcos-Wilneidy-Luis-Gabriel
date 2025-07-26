@@ -7,15 +7,41 @@ const Navbar = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const location = useLocation();
-  
+
   const isHomePage = location.pathname === '/';
+
+
+  const handleLoginSuccess = (userData) => {
+    console.log('Usuario logueado:', userData);
+    // Aquí voy agregar la actualizacion del estado del usuario
+  };
+
+
+  const handleRegisterSuccess = (email) => {
+    console.log('Usuario registrado:', email);
+    setShowRegisterModal(false);
+    setShowLoginModal(true);
+  };
+
+
+  const switchToRegister = () => {
+    setShowLoginModal(false);
+    setShowRegisterModal(true);
+  };
+
+
+  const switchToLogin = () => {
+    setShowRegisterModal(false);
+    setShowLoginModal(true);
+  };
 
   return (
     <>
       <nav className="navbar-sidebar">
-        <div className="navbar-logo">
-          <Link to="/" className="navbar-logo-link">
+        <div>
+          <Link to="/" className="logo-link">
             <img className="navbar-logo" src="/amuzz_logo.png" alt="amuzz_logo" />
+            <h2 className="navbar-amuzz">Amuzz</h2>
           </Link>
         </div>
 
@@ -24,7 +50,7 @@ const Navbar = () => {
           {isHomePage && (
             <>
               <li className="navbar-nav-item">
-                <button 
+                <button
                   className="navbar-btn navbar-btn-primary"
                   onClick={() => setShowLoginModal(true)}
                 >
@@ -32,7 +58,7 @@ const Navbar = () => {
                 </button>
               </li>
               <li className="navbar-nav-item">
-                <button 
+                <button
                   className="navbar-btn navbar-btn-outline"
                   onClick={() => setShowRegisterModal(true)}
                 >
@@ -46,13 +72,17 @@ const Navbar = () => {
 
       {isHomePage && (
         <>
-          <LoginModal 
-            show={showLoginModal} 
-            onClose={() => setShowLoginModal(false)} 
+          <LoginModal
+            show={showLoginModal}
+            onClose={() => setShowLoginModal(false)}
+            onLoginSuccess={handleLoginSuccess}
+            onSwitchToRegister={switchToRegister}
           />
-          <RegisterModal 
-            show={showRegisterModal} 
-            onClose={() => setShowRegisterModal(false)} 
+          <RegisterModal
+            show={showRegisterModal}
+            onClose={() => setShowRegisterModal(false)}
+            onRegisterSuccess={handleRegisterSuccess}
+            onSwitchToLogin={switchToLogin}
           />
         </>
       )}
