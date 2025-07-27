@@ -24,6 +24,7 @@ flask-admin = "*"
 typing-extensions = "*"
 werkzeug = "*"
 requests = "*"
+stripe = "*"
 
 [requires]
 python_version = "3.13"

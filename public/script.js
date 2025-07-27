@@ -1,18 +1,24 @@
 import * as THREE from "https://unpkg.com/three@0.178.0/build/three.module.js";
 
-let mouse = new THREE.Vector2(0, 0);
+// Variables globales
+let mouse = new THREE.Vector2();
 let mouseWorld = new THREE.Vector3();
-
 const scene = new THREE.Scene();
 scene.background = null;
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  100
+);
 camera.position.z = 5;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+// Video de fondo
 const video = document.createElement("video");
 video.src = "/fondo.mp4";
 video.crossOrigin = "anonymous";
@@ -26,23 +32,81 @@ videoTexture.minFilter = THREE.LinearFilter;
 videoTexture.magFilter = THREE.LinearFilter;
 videoTexture.format = THREE.RGBFormat;
 
-const geometry = new THREE.SphereGeometry(1.4, 64, 64).toNonIndexed();
-const posAttr = geometry.getAttribute("position");
-const triangleCount = posAttr.count / 3;
-
-const triangleData = new Float32Array(triangleCount * 4);
-for (let i = 0; i < triangleCount; i++) {
-  const idx = i * 9;
-  const tIdx = i * 4;
-  const x = (posAttr.array[idx] + posAttr.array[idx + 3] + posAttr.array[idx + 6]) / 3;
-  const y = (posAttr.array[idx + 1] + posAttr.array[idx + 4] + posAttr.array[idx + 7]) / 3;
-  const z = (posAttr.array[idx + 2] + posAttr.array[idx + 5] + posAttr.array[idx + 8]) / 3;
-  triangleData[tIdx] = x;
-  triangleData[tIdx + 1] = y;
-  triangleData[tIdx + 2] = z;
-  triangleData[tIdx + 3] = 1 / triangleCount;
+// Funciones de color y forma por mood
+function getMoodColor(mood) {
+  switch (mood) {
+    case "happy":
+      return new THREE.Color(1, 0.8, 0.3);
+    case "sad":
+      return new THREE.Color(0.3, 0.4, 0.8);
+    case "relax":
+      return new THREE.Color(0.4, 1, 0.8);
+    case "anxiety":
+      return new THREE.Color(1, 0.4, 0.4);
+    case "party":
+      return new THREE.Color(0.9, 0.2, 1);
+    case "energic":
+      return new THREE.Color(1, 0.1, 0.1);
+    case "latin":
+      return new THREE.Color(1, 0.6, 0.2);
+    default:
+      return new THREE.Color(1, 1, 1);
+  }
 }
-const triangleDataTexture = new THREE.DataTexture(
+
+function getGeometryByMood(mood) {
+  switch (mood) {
+    case "happy":
+      return new THREE.SphereGeometry(1.4, 64, 64).toNonIndexed();
+    case "sad":
+      return new THREE.ConeGeometry(2, 3, 120, 50).toNonIndexed();
+    case "energic":
+      return new THREE.TorusGeometry(1, 0.5, 64, 100).toNonIndexed(); // reemplazo del cubo
+    case "relax":
+      return new THREE.ConeGeometry(5, 0.3, 64, 50).toNonIndexed();
+    case "party":
+      return new THREE.OctahedronGeometry(1.6).toNonIndexed();
+    case "latin":
+      return new THREE.DodecahedronGeometry(1.6).toNonIndexed();
+    case "anxiety":
+      return new THREE.TorusKnotGeometry(1, 0.3, 120, 16).toNonIndexed();
+    default:
+      return new THREE.SphereGeometry(1.4, 64, 64).toNonIndexed();
+  }
+}
+
+function generateTriangleData(geometry) {
+  const posAttr = geometry.getAttribute("position");
+  const triangleCount = posAttr.count / 3;
+  const triangleData = new Float32Array(triangleCount * 4);
+  for (let i = 0; i < triangleCount; i++) {
+    const idx = i * 9;
+    const tIdx = i * 4;
+    const x =
+      (posAttr.array[idx] + posAttr.array[idx + 3] + posAttr.array[idx + 6]) /
+      3;
+    const y =
+      (posAttr.array[idx + 1] +
+        posAttr.array[idx + 4] +
+        posAttr.array[idx + 7]) /
+      3;
+    const z =
+      (posAttr.array[idx + 2] +
+        posAttr.array[idx + 5] +
+        posAttr.array[idx + 8]) /
+      3;
+    triangleData[tIdx] = x;
+    triangleData[tIdx + 1] = y;
+    triangleData[tIdx + 2] = z;
+    triangleData[tIdx + 3] = 1 / triangleCount;
+  }
+  return { triangleData, triangleCount };
+}
+
+// Geometría inicial
+let geometry = getGeometryByMood("happy");
+let { triangleData, triangleCount } = generateTriangleData(geometry);
+let triangleDataTexture = new THREE.DataTexture(
   triangleData,
   triangleCount,
   1,
@@ -51,6 +115,7 @@ const triangleDataTexture = new THREE.DataTexture(
 );
 triangleDataTexture.needsUpdate = true;
 
+// Material
 const material = new THREE.ShaderMaterial({
   transparent: true,
   depthWrite: false,
@@ -61,7 +126,8 @@ const material = new THREE.ShaderMaterial({
     uRadius: { value: 1.5 },
     uTriangleCount: { value: triangleCount },
     uData: { value: triangleDataTexture },
-    uVideo: { value: videoTexture }
+    uVideo: { value: videoTexture },
+    uColor: { value: getMoodColor("happy") },
   },
   vertexShader: `
     uniform vec3 uMouse;
@@ -91,27 +157,27 @@ const material = new THREE.ShaderMaterial({
     varying float vFresnel;
     varying vec2 vUv;
     uniform sampler2D uVideo;
+    uniform vec3 uColor;
     void main() {
       vec3 reflection = texture2D(uVideo, vUv).rgb;
-      vec3 finalColor = mix(vec3(1.0), reflection, vFresnel);
+      vec3 finalColor = mix(uColor, reflection, vFresnel);
       float alpha = smoothstep(0.0, 1.0, vFresnel) * 0.35;
       gl_FragColor = vec4(finalColor, alpha);
     }
-  `
+  `,
 });
 
-const sphere = new THREE.Mesh(geometry, material);
-sphere.position.set(-0.8, -0.2, 0);
-scene.add(sphere);
+const mesh = new THREE.Mesh(geometry, material);
+mesh.position.set(-0.8, -0.2, 0);
+scene.add(mesh);
 
+// Agua
 const waterGeo = new THREE.PlaneGeometry(6, 6);
 const waterMat = new THREE.ShaderMaterial({
   transparent: true,
   depthWrite: false,
   side: THREE.DoubleSide,
-  uniforms: {
-    uTime: { value: 0.0 }
-  },
+  uniforms: { uTime: { value: 0.0 } },
   vertexShader: `
     varying vec2 vUv;
     void main() {
@@ -131,7 +197,7 @@ const waterMat = new THREE.ShaderMaterial({
       vec3 color = vec3(0.5, 0.9, 1.0);
       gl_FragColor = vec4(color, alpha);
     }
-  `
+  `,
 });
 const water = new THREE.Mesh(waterGeo, waterMat);
 water.rotation.x = -Math.PI / 2;
@@ -139,11 +205,13 @@ water.position.y = -1.9;
 water.position.x = -0.859;
 scene.add(water);
 
+// Luz
 scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 const dir = new THREE.DirectionalLight(0xffffff, 1.2);
 dir.position.set(5, 5, 5);
 scene.add(dir);
 
+// Mouse
 window.addEventListener("mousemove", (event) => {
   const x = (event.clientX / window.innerWidth) * 2 - 1;
   const y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -154,17 +222,43 @@ window.addEventListener("mousemove", (event) => {
   mouseWorld.copy(camera.position).add(dir.multiplyScalar(dist));
 });
 
+// Resize
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+// Animación
+let lastMood = "";
+
 function animate() {
   requestAnimationFrame(animate);
   material.uniforms.uTime.value += 0.01;
-  material.uniforms.uMouse.value.copy(mouseWorld);
   waterMat.uniforms.uTime.value += 0.01;
+  material.uniforms.uMouse.value.copy(mouseWorld);
+
+  if (window.currentMood && window.currentMood !== lastMood) {
+    lastMood = window.currentMood;
+
+    material.uniforms.uColor.value = getMoodColor(lastMood);
+    const newGeometry = getGeometryByMood(lastMood);
+    mesh.geometry.dispose();
+    mesh.geometry = newGeometry;
+
+    const { triangleData, triangleCount } = generateTriangleData(newGeometry);
+    const newTexture = new THREE.DataTexture(
+      triangleData,
+      triangleCount,
+      1,
+      THREE.RGBAFormat,
+      THREE.FloatType
+    );
+    newTexture.needsUpdate = true;
+    material.uniforms.uData.value = newTexture;
+    material.uniforms.uTriangleCount.value = triangleCount;
+  }
+
   renderer.render(scene, camera);
 }
 animate();

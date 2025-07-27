@@ -27,6 +27,13 @@ const Results = () => {
       });
   }, [mood]);
 
+  // 👉 ESTA PARTE ES LA QUE FALTABA
+  useEffect(() => {
+    if (mood) {
+      window.currentMood = mood;
+    }
+  }, [mood]);
+
   return (
     <div className="video-background pb-40">
       <video autoPlay loop muted playsInline>
