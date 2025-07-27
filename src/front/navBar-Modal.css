@@ -9,7 +9,7 @@
   -webkit-backdrop-filter: blur(10px);
   color: white;
   padding: 1rem;
-  z-index: 1050;
+  z-index: 500;
   overflow-y: auto;
   transition: all 0.3s ease;
   animation: slideIn 0.3s ease-out;
