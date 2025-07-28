@@ -1,14 +1,31 @@
-export const initialStore = () => ({
-  user: null,
-  isAuthenticated: false,
-  currentTrack: null,     // Objeto con la canción actual
-  isPlaying: false,       // ¿Está sonando?
-  isPlayerVisible: false, // ¿Está visible el reproductor?
-  isPlayerMinimized: false // ¿Está minimizado?
-});
+export const initialStore = () => {
+  const storedToken = localStorage.getItem('token');
+  const storedUser = localStorage.getItem('user');
+
+  return {
+    user: storedUser ? JSON.parse(storedUser) : null,
+    token: storedToken || null,
+    isAuthenticated: !!storedToken,
+    currentTrack: null,
+    isPlaying: false,       // ¿Está sonando?
+    isPlayerVisible: false, // ¿Está visible el reproductor?
+    isPlayerMinimized: false
+  };
+};
 
 export default function storeReducer(state, action) {
   switch (action.type) {
+    case "LOGIN_SUCCESS":
+      localStorage.setItem('user', JSON.stringify(action.payload.user));
+      localStorage.setItem('token', action.payload.token);
+
+      return {
+        ...state,
+        user: action.payload.user,
+        token: action.payload.token,
+        isAuthenticated: true,
+      };
+
     case "SET_USER":
       return {
         ...state,
@@ -32,7 +49,18 @@ export default function storeReducer(state, action) {
         isPlayerMinimized: false,
       };
 
-    case "STOP_TRACK":
+    case "LOGOUT":
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      return {
+        ...state,
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        currentTrack: null,
+      };
+
+      case "STOP_TRACK":
       return {
         ...state,
         currentTrack: null,
@@ -76,6 +104,7 @@ export default function storeReducer(state, action) {
         ...state,
         isPlayerVisible: !state.isPlayerVisible,
       };
+
 
     default:
       return state;

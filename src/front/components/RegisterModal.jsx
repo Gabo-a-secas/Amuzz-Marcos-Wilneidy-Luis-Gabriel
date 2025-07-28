@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import BackendURL from './BackendURL';
 const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
+  const { dispatch } = useGlobalReducer();
+
   const [formData, setFormData] = useState({
     fullName: '',
     username: '',
@@ -81,9 +83,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
     try {
       const response = await fetch(`${BackendURL}/api/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           full_name: formData.fullName,
           username: formData.username,
@@ -111,9 +111,9 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
       } else {
         if (response.status === 409) {
           if (data.message.includes('correo')) {
-            setErrors({ email: data.message || 'This email is already registered' });
+            setErrors({ email: data.message });
           } else if (data.message.includes('username')) {
-            setErrors({ username: data.message || 'This username is already taken' });
+            setErrors({ username: data.message });
           } else {
             setErrors({ general: data.message });
           }
@@ -129,15 +129,13 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      setErrors({ general: 'Network error. Please check your connection and try again.' });
+      setErrors({ general: 'Network error. Please try again later.' });
     } finally {
       setIsLoading(false);
     }
   };
   const handleBackdropClick = (e) => {
-    if (!isLoading) {
-      onClose();
-    }
+    if (!isLoading) onClose();
   };
   const maxDate = new Date();
   maxDate.setFullYear(maxDate.getFullYear() - 13);
