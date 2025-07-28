@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback, memo, useState } from "react";
-import { FaPlay, FaPause, FaForward, FaBackward, FaVolumeUp, FaTimes } from "react-icons/fa";
+import { FaPlay, FaPause, FaForward, FaBackward, FaVolumeUp, FaTimes, FaExpand } from "react-icons/fa";
+import { usePlayer } from "../hooks/PlayerContext";
 import "../player.css";
 
 export const Player = memo(({ track, visible, onClose }) => {
@@ -10,6 +11,7 @@ export const Player = memo(({ track, visible, onClose }) => {
   const progressBarRef = useRef(null);
   const volumeBarRef = useRef(null);
   const animationFrameRef = useRef(null);
+  const { expandPlayer } = usePlayer();
 
   
   const updateProgress = useCallback(() => {
@@ -121,7 +123,9 @@ export const Player = memo(({ track, visible, onClose }) => {
       <div className="player-actions">
         <button onClick={handleClose} title="Cerrar"><FaTimes /></button>
       </div>
-
+      <button onClick={expandPlayer} title="Expandir">
+      <FaExpand /> 
+      </button>
       <div className="track-info">
         <img src={track.image} alt={track.name} className="track-image" />
         <div>

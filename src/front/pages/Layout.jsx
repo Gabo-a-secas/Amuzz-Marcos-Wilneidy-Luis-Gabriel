@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import ScrollToTop from "../components/ScrollToTop";
 import Navbar from "../components/Navbar";
-import PlayerTestWrapper from "../components/PlayerTestWrapper";
+import PlayerWrapper from "../components/PlayerWrapper";
 
 const Layout = () => {
   return (
@@ -15,7 +15,7 @@ const Layout = () => {
       </div>
 
       
-      <PlayerTestWrapper />
+      <PlayerWrapper />
     </ScrollToTop>
   );
 };

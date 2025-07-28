@@ -1,8 +1,14 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 
 const PlayerContext = createContext();
 
+
+
+
 export function PlayerProvider({ children }) {
+
+  const [expanded, setExpanded] = useState(false);
+
   const [track, setTrack]     = useState(null);
   const [visible, setVisible] = useState(false);
 
@@ -16,9 +22,12 @@ export function PlayerProvider({ children }) {
     setTrack(null);
   }, []);
 
+  const expandPlayer = useCallback(() => setExpanded(true), []);
+  const collapsePlayer = useCallback(() => setExpanded(false), []);
+
   return (
     <PlayerContext.Provider
-      value={{ track, visible, openPlayer, closePlayer }}
+      value={{ track, visible, expanded, openPlayer, closePlayer, expandPlayer, collapsePlayer }}
     >
       {children}
     </PlayerContext.Provider>
