@@ -1,8 +1,10 @@
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import useGlobalReducer from "../hooks/useGlobalReducer";
+import { usePlayer } from "../hooks/PlayerContext";
 
 const Results = () => {
+  console.log("🔥 Results re-render");
+  
   const location = useLocation();
   const moodObj = location.state?.moodObj;
   const mood = moodObj?.mood;
@@ -10,14 +12,14 @@ const Results = () => {
 
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { dispatch } = useGlobalReducer();
+  const { openPlayer } = usePlayer();
 
   useEffect(() => {
     if (!mood) return;
-
     fetch(`/api/music/mood/${mood}`)
       .then((res) => res.json())
       .then((data) => {
+        console.log("🗂️ Ejemplo de track:", data[0]);
         setTracks(data);
         setLoading(false);
       })
@@ -26,6 +28,17 @@ const Results = () => {
         setLoading(false);
       });
   }, [mood]);
+
+  const handleEscuchar = (track) => {
+    console.log("🎵 Abriendo Player:", track.name);
+    openPlayer({
+      id: track.id,
+      name: track.name,
+      artist: track.artist,
+      audio: track.audio,
+      image: track.image
+    });
+  };
 
   return (
     <div className="video-background pb-40">
@@ -58,9 +71,7 @@ const Results = () => {
                 <h3 className="text-xl font-semibold">{track.name}</h3>
                 <p className="text-sm text-gray-300">{track.artist}</p>
                 <button
-                  onClick={() =>
-                    dispatch({ type: "SET_CURRENT_TRACK", payload: track })
-                  }
+                  onClick={() => handleEscuchar(track)}
                   className="mt-2 bg-purple-600 text-white px-4 py-2 rounded-full"
                 >
                   Escuchar

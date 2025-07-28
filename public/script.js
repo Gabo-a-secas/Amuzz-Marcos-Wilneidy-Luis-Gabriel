@@ -55,7 +55,7 @@ const material = new THREE.ShaderMaterial({
   transparent: true,
   depthWrite: false,
   side: THREE.DoubleSide,
-  uniforms: {
+  uniforms: { 
     uMouse: { value: mouseWorld },
     uTime: { value: 0 },
     uRadius: { value: 1.5 },
