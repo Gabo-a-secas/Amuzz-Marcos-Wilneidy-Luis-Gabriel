@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Date
-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
+from sqlalchemy import String, Date, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
+from datetime import datetime 
 
 class Base(DeclarativeBase):
     pass
@@ -25,4 +26,43 @@ class User(db.Model):
             "username": self.username,
             "email": self.email,
             "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None
+        }
+    
+class Playlist(db.Model):
+    __tablename__ = 'playlists'  # Opcional
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.String(250))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, ForeignKey('user.id'), nullable=False)
+
+    user = relationship('User', backref=db.backref('playlists', lazy=True))
+
+class PlaylistSong(db.Model):
+    __tablename__ = 'playlist_songs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    playlist_id = db.Column(db.Integer, ForeignKey('playlists.id'), nullable=False)
+    song_id = db.Column(db.String(50), nullable=False)
+    name = db.Column(db.String, nullable=False)
+    artist = db.Column(db.String, nullable=False)
+    audio_url = db.Column(db.String, nullable=False)
+    image_url = db.Column(db.String, nullable=True)
+    license_url = db.Column(db.String, nullable=True)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    playlist = relationship('Playlist', backref=db.backref('songs', lazy=True))
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "playlist_id": self.playlist_id,
+            "song_id": self.song_id,
+            "name": self.name,
+            "artist": self.artist,
+            "audio_url": self.audio_url,
+            "image_url": self.image_url,
+            "license_url": self.license_url,
+            "added_at": self.added_at.isoformat()
         }
