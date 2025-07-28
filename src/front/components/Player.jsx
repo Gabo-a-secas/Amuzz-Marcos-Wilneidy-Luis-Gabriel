@@ -1,77 +1,178 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useCallback, memo, useState } from "react";
+import { FaPlay, FaPause, FaForward, FaBackward, FaVolumeUp, FaTimes, FaExpand } from "react-icons/fa";
+import { usePlayer } from "../hooks/PlayerContext";
+import "../player.css";
 
-export const Player = ({ track }) => {
-  const audioRef = useRef(null);
+export const Player = memo(({ track, visible, onClose }) => {
+  console.log("🔴 PlayerTest re-render", { track: track?.name, visible });
+  
   const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const audioRef = useRef(null);
+  const progressBarRef = useRef(null);
+  const volumeBarRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const { expandPlayer } = usePlayer();
 
-  useEffect(() => {
-    if (track && audioRef.current) {
-      audioRef.current.load();
-      setIsPlaying(true);
-      setProgress(0);
+  
+  const updateProgress = useCallback(() => {
+    const audio = audioRef.current;
+    const progressBar = progressBarRef.current;
+    
+    if (audio && progressBar && audio.duration && isPlaying) {
+      const progress = (audio.currentTime / audio.duration) * 100;
+      if (!isNaN(progress)) {
+        progressBar.value = progress;
+      }
+      
+     
+      animationFrameRef.current = requestAnimationFrame(updateProgress);
     }
-  }, [track]);
-
-  useEffect(() => {
-    if (!audioRef.current) return;
-    isPlaying ? audioRef.current.play() : audioRef.current.pause();
   }, [isPlaying]);
 
-  const handleTimeUpdate = () => {
-    const { currentTime, duration } = audioRef.current;
-    if (duration > 0) {
-      setProgress((currentTime / duration) * 100);
+  
+  useEffect(() => {
+    if (!track || !audioRef.current) return;
+    console.log("▶️ track.audio =", track.audio);
+    const audio = audioRef.current;
+    audio.src = track.audio;
+    audio.load();
+    setIsPlaying(true);
+  }, [track]);
+
+  
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.play().catch((err) => {
+        if (err.name !== "AbortError") console.error("Error al reproducir audio:", err);
+      });
+      
+      
+      animationFrameRef.current = requestAnimationFrame(updateProgress);
+    } else {
+      audio.pause();
+      
+      
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     }
-  };
 
-  const handleSeek = (e) => {
-    const newTime = (e.target.value / 100) * audioRef.current.duration;
-    audioRef.current.currentTime = newTime;
-  };
+   
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [isPlaying, updateProgress]);
 
-  if (!track) return null;
+  const handleSeek = useCallback((e) => {
+    console.log("Seek change", e.target.value);
+    const audio = audioRef.current;
+    if (!audio || !audio.duration) return;
+    
+    const newTime = (e.target.value / 100) * audio.duration;
+    audio.currentTime = newTime;
+  }, []);
+
+  const handleVolumeChange = useCallback((e) => {
+    console.log("Volume change", e.target.value);
+    const value = parseFloat(e.target.value);
+    
+    if (audioRef.current) {
+      audioRef.current.volume = value;
+    }
+  }, []);
+
+  const handleClose = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    
+    setIsPlaying(false);
+    if (onClose) onClose();
+  }, [onClose]);
+
+  const handlePlay = useCallback(() => {
+    setIsPlaying(true);
+  }, []);
+
+  const handlePause = useCallback(() => {
+    setIsPlaying(false);
+  }, []);
+
+  const handleEnded = useCallback(() => {
+    setIsPlaying(false);
+    if (progressBarRef.current) {
+      progressBarRef.current.value = 100;
+    }
+  }, []);
+
+  if (!track || !visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-lg px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div className="flex items-center gap-4">
-        <img
-          src={track.image}
-          alt={track.name}
-          className="w-16 h-16 rounded shadow-md object-cover"
-        />
+    <div className="player-container">
+      <div className="player-actions">
+        <button onClick={handleClose} title="Cerrar"><FaTimes /></button>
+      </div>
+      <button onClick={expandPlayer} title="Expandir">
+      <FaExpand /> 
+      </button>
+      <div className="playertrack-info">
+        <img src={track.image} alt={track.name} className="playertrack-image" />
         <div>
-          <h4 className="text-sm font-semibold text-gray-800">{track.name}</h4>
-          <p className="text-xs text-gray-500">{track.artist}</p>
+          <h4 className="playertrack-title">{track.name}</h4>
+          <p className="playertrack-artist">{track.artist}</p>
         </div>
       </div>
 
-      <div className="flex flex-col items-center w-full md:w-1/2">
-        <div className="flex gap-4 mb-1">
-          <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className="text-purple-600 hover:text-purple-800 text-2xl"
-          >
-            {isPlaying ? "⏸️" : "▶️"}
-          </button>
+      <div className="player-controls">
+        <div className="buttons">
+          <FaBackward className="icon" />
+          {isPlaying ? (
+            <FaPause onClick={handlePause} className="icon" />
+          ) : (
+            <FaPlay onClick={handlePlay} className="icon" />
+          )}
+          <FaForward className="icon" />
         </div>
-
         <input
+          ref={progressBarRef}
           type="range"
           min="0"
           max="100"
-          value={progress}
+          defaultValue="0"
           onChange={handleSeek}
-          className="w-full"
+          className="progress-bar"
+        />
+      </div>
+
+      <div className="volume-control">
+        <FaVolumeUp className="icon" />
+        <input
+          ref={volumeBarRef}
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          defaultValue="1"
+          onChange={handleVolumeChange}
+          className="volume-bar"
         />
       </div>
 
       <audio
         ref={audioRef}
-        src={track.audio}
-        onTimeUpdate={handleTimeUpdate}
-        onEnded={() => setIsPlaying(false)}
+        onEnded={handleEnded}
       />
     </div>
   );
-};
+});

@@ -2,8 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import './navBar-Modal.css';
+import './player.css';
 import { RouterProvider } from 'react-router-dom';
 import { StoreProvider } from './hooks/useGlobalReducer';
+import { PlayerProvider } from './hooks/PlayerContext'
 import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
 import Layout from './pages/Layout';
 import Home from './pages/Home';
@@ -21,12 +23,14 @@ const router = createBrowserRouter(
 );
 
 const Main = () => {
-  return (
-    <React.StrictMode>
-      <StoreProvider>
-        <RouterProvider router={router} />
-      </StoreProvider>
-    </React.StrictMode>
+  return (  
+      
+       <PlayerProvider>                
+       <StoreProvider>              
+       <RouterProvider router={router} />
+       </StoreProvider>
+       </PlayerProvider>
+      
   );
 };
 

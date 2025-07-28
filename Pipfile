@@ -23,8 +23,8 @@ flask-admin = "*"
 typing-extensions = "*"
 werkzeug = "*"
 requests = "*"
-stripe = "*"
 psycopg2-binary = "*"
+stripe = "*"
 
 [requires]
 python_version = "3.13"
