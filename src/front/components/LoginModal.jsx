@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import BackendURL from './BackendURL';
+import { StoreContext } from "../hooks/useGlobalReducer";
 
 const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
+  const { dispatch } = useContext(StoreContext);
+
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -19,7 +22,6 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
       [name]: value
     }));
 
-
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -27,15 +29,13 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
 
   const validateForm = () => {
     const newErrors = {};
-
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!emailRegex.test(formData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
-
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
@@ -47,10 +47,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsLoading(true);
     setErrors({});
@@ -58,58 +55,30 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
     try {
       const response = await fetch(`${BackendURL}/api/token`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       });
 
       const data = await response.json();
 
       if (response.ok) {
+        const { token, user } = data;
 
-        sessionStorage.setItem('token', data.token);
+        // Guardar en localStorage
+        localStorage.setItem('token', token);
 
+        // Actualizar el estado global
+        dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
 
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('tokenType', data.token_type);
-        localStorage.setItem('expiresAt', data.expires_at);
-
-
-        if (onLoginSuccess) {
-          onLoginSuccess({
-            token: data.token,
-            email: formData.email,
-            ...data // pasar toda la data del usuario
-          });
-        }
-
+        if (onLoginSuccess) onLoginSuccess({ user, token });
 
         alert(data.message || 'Login successful!');
-
-
-        setFormData({
-          email: '',
-          password: ''
-        });
-
-
+        setFormData({ email: '', password: '' });
         onClose();
       } else {
-
-        if (response.status === 401) {
-
-          setErrors({
-            general: 'Invalid email or password. Please check your credentials and try again.'
-          });
-        } else if (response.status === 400) {
-          setErrors({ general: data.message || 'Please fill in all required fields.' });
-        } else {
-          setErrors({ general: data.message || 'Login failed. Please try again.' });
-        }
+        setErrors({
+          general: data.message || 'Login failed. Please check your credentials.'
+        });
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -120,15 +89,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
   };
 
   const handleBackdropClick = (e) => {
-    if (!isLoading) {
-      onClose();
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSubmit(e);
-    }
+    if (!isLoading) onClose();
   };
 
   return (
@@ -148,9 +109,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
 
           <div className="modal-body">
             <form className="modal-form" onSubmit={handleSubmit}>
-              {errors.general && (
-                <div className="form-alert form-alert-danger">{errors.general}</div>
-              )}
+              {errors.general && <div className="form-alert form-alert-danger">{errors.general}</div>}
 
               <div className="form-group">
                 <label className="form-label">Email</label>
@@ -160,15 +119,12 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
                   className={`form-input ${errors.email ? 'form-input-error' : ''}`}
                   value={formData.email}
                   onChange={handleChange}
-                  onKeyPress={handleKeyPress}
                   disabled={isLoading}
                   placeholder="Enter your email"
                   autoComplete="email"
                   autoFocus
                 />
-                {errors.email && (
-                  <span className="form-error-message">{errors.email}</span>
-                )}
+                {errors.email && <span className="form-error-message">{errors.email}</span>}
               </div>
 
               <div className="form-group">
@@ -179,21 +135,22 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
                   className={`form-input ${errors.password ? 'form-input-error' : ''}`}
                   value={formData.password}
                   onChange={handleChange}
-                  onKeyPress={handleKeyPress}
                   disabled={isLoading}
                   placeholder="Enter your password"
                   autoComplete="current-password"
                 />
-                {errors.password && (
-                  <span className="form-error-message">{errors.password}</span>
-                )}
+                {errors.password && <span className="form-error-message">{errors.password}</span>}
               </div>
 
               <div className="form-links">
-                <a href="#" className="form-link" onClick={(e) => {
-                  e.preventDefault();
-                  alert('Forgot password functionality coming soon!');
-                }}>
+                <a
+                  href="#"
+                  className="form-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    alert('Forgot password functionality coming soon!');
+                  }}
+                >
                   Forgot your password?
                 </a>
               </div>
@@ -201,24 +158,13 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
           </div>
 
           <div className="modal-footer">
-            <button
-              type="button"
-              className="modal-btn modal-btn-secondary"
-              onClick={onClose}
-              disabled={isLoading}
-            >
+            <button type="button" className="modal-btn modal-btn-secondary" onClick={onClose} disabled={isLoading}>
               Cancel
             </button>
-            <button
-              type="button"
-              className="modal-btn modal-btn-primary"
-              onClick={handleSubmit}
-              disabled={isLoading}
-            >
+            <button type="submit" className="modal-btn modal-btn-primary" onClick={handleSubmit} disabled={isLoading}>
               {isLoading ? (
                 <>
-                  <span className="form-spinner"></span>
-                  Logging in...
+                  <span className="form-spinner" /> Logging in...
                 </>
               ) : (
                 'Login'
@@ -234,11 +180,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
             <button
               type="button"
               className="form-link-button"
-              onClick={() => {
-                if (onSwitchToRegister) {
-                  onSwitchToRegister();
-                }
-              }}
+              onClick={() => onSwitchToRegister && onSwitchToRegister()}
               disabled={isLoading}
             >
               Create an account

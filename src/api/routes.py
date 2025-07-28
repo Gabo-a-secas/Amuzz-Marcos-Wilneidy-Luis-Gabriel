@@ -3,23 +3,23 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 """
 from flask import Blueprint, request, jsonify
 import requests
+import os
+from dotenv import load_dotenv
 from api.models import db, User
 from api.utils import generate_sitemap, APIException
-from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
+load_dotenv()
 
 api = Blueprint('api', __name__)
-CORS(api)
 
-# Ruta de prueba
-@api.route('/hello', methods=['POST', 'GET'])
+# JAMENDO API - obtener música por estado de ánimo
+JAMENDO_CLIENT_ID = os.getenv("JAMENDO_CLIENT_ID", "64b5cce9")  # valor por defecto
+
+@api.route('/hello', methods=['GET', 'POST'])
 def handle_hello():
-    return jsonify({
-        "message": "Hello! I'm a message that came from the backend."
-    }), 200
+    return jsonify({"message": "Hello! I'm a message that came from the backend."}), 200
 
-# Ruta solo para admin 
 @api.route('/admin-zone', methods=['GET'])
 @jwt_required()
 def admin_zone():
@@ -30,9 +30,6 @@ def admin_zone():
         return jsonify({"msg": "Acceso denegado"}), 403
 
     return jsonify({"msg": f"Bienvenido, admin {user['email']}"}), 200
-
-# JAMENDO API - obtener música por estado de ánimo
-JAMENDO_CLIENT_ID = "64b5cce9"
 
 @api.route('/music/mood/<string:mood>', methods=['GET'])
 def get_music_by_mood(mood):
