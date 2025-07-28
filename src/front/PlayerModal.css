@@ -1,4 +1,4 @@
-.modal-overlay {
+.playermodal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -11,7 +11,7 @@
   z-index: 1000;
 }
 
-.modal-content {
+.playermodal-content {
   background: #111;
   padding: 2rem;
   border-radius: 12px;
@@ -22,7 +22,7 @@
   position: relative;
 }
 
-.modal-image {
+.playermodal-image {
   width: 100%;
   max-width: 300px;
   border-radius: 8px;
