@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_swagger import swagger
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from api.utils import APIException, generate_sitemap
-from api.models import db, User
+from api.models import db, User, Playlist,  PlaylistSong
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
@@ -18,7 +18,7 @@ app = Flask(__name__)
 CORS(app, resources={
     r"/*": {
         "origins": [
-            "https://legendary-eureka-975rxjgrgp6v3xjrr-3000.app.github.dev",
+            "https://glorious-space-barnacle-69555wxx95p6crpj9-3000.app.github.dev",
             "https://*.github.dev",
             "http://localhost:*",
             "http://localhost:5173"
@@ -37,6 +37,7 @@ jwt = JWTManager(app)
 
 # Inicializar base de datos
 db.init_app(app)
+from flask_migrate import Migrate
 migrate = Migrate(app, db)
 
 with app.app_context():

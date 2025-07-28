@@ -126,11 +126,11 @@ export const Player = memo(({ track, visible, onClose }) => {
       <button onClick={expandPlayer} title="Expandir">
       <FaExpand /> 
       </button>
-      <div className="track-info">
-        <img src={track.image} alt={track.name} className="track-image" />
+      <div className="playertrack-info">
+        <img src={track.image} alt={track.name} className="playertrack-image" />
         <div>
-          <h4 className="track-title">{track.name}</h4>
-          <p className="track-artist">{track.artist}</p>
+          <h4 className="playertrack-title">{track.name}</h4>
+          <p className="playertrack-artist">{track.artist}</p>
         </div>
       </div>
 
