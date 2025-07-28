@@ -27,13 +27,6 @@ const Results = () => {
       });
   }, [mood]);
 
-  
-  useEffect(() => {
-    if (mood) {
-      window.currentMood = mood;
-    }
-  }, [mood]);
-
   const handleEscuchar = (track) => {
     openPlayer({
       id: track.id,
