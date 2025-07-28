@@ -15,6 +15,22 @@
   animation: slideIn 0.3s ease-out;
 }
 
+.navbar-sidebar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Esto empuja el botón al fondo */
+}
+
+.navbar-premium-button {
+  margin-top: auto;
+  padding-top: 1rem;
+  text-align: center;
+}
+
+.navbar-premium-button button {
+  width: 100%;
+}
+
 .navbar-logo {
   width: 70px;
 }

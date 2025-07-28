@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import LoginModal from "./LoginModal";
 import RegisterModal from "./RegisterModal";
+import PremiumButton from "../components/PremiumButton";
 
 const Navbar = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -10,12 +11,10 @@ const Navbar = () => {
 
   const isHomePage = location.pathname === '/';
 
-
   const handleLoginSuccess = (userData) => {
     console.log('Usuario logueado:', userData);
     // Aquí voy agregar la actualizacion del estado del usuario
   };
-
 
   const handleRegisterSuccess = (email) => {
     console.log('Usuario registrado:', email);
@@ -23,12 +22,10 @@ const Navbar = () => {
     setShowLoginModal(true);
   };
 
-
   const switchToRegister = () => {
     setShowLoginModal(false);
     setShowRegisterModal(true);
   };
-
 
   const switchToLogin = () => {
     setShowRegisterModal(false);
@@ -68,6 +65,11 @@ const Navbar = () => {
             </>
           )}
         </ul>
+
+
+        <div className="navbar-premium-button">
+          <PremiumButton />
+        </div>
       </nav>
 
       {isHomePage && (
