@@ -23,13 +23,13 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value
     }));
 
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -95,19 +95,16 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsLoading(true);
     setErrors({});
 
     try {
-      const response = await fetch(`${BackendURL}/api/register`, {
+      const apiURL = `${BackendURL.replace(/\/$/, '')}/api/register`;
+      const response = await fetch(apiURL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           full_name: formData.fullName,
           username: formData.username,
@@ -165,9 +162,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
   };
 
   const handleBackdropClick = (e) => {
-    if (!isLoading) {
-      onClose();
-    }
+    if (!isLoading) onClose();
   };
 
   const maxDate = new Date();
