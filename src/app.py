@@ -36,7 +36,7 @@ mail = Mail(app)
 CORS(app, resources={
     r"/*": {
         "origins": [
-            "https://psychic-robot-vp6q4x6rjjwcx7gv-3000.app.github.dev",
+            "https://legendary-eureka-975xjgrpgp6v3xjpr-3000.app.github.dev",
             "https://*.github.dev",
             "http://localhost:*",
             "http://localhost:5173"
