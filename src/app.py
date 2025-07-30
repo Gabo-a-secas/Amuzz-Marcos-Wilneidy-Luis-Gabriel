@@ -21,24 +21,14 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Configuración de Mail
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
 app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 2525))
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
-app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL', 'False').lower() == 'true'
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
-
-mail = Mail(app)
-
-# Configuración de Mail
-app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
-app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 2525))
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
-app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL', 'False').lower() == 'true'
+app.config['MAIL_USE_TLS'] = os.getenv(
+    'MAIL_USE_TLS', 'True').lower() == 'true'
+app.config['MAIL_USE_SSL'] = os.getenv(
+    'MAIL_USE_SSL', 'False').lower() == 'true'
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 
 mail = Mail(app)
@@ -74,22 +64,27 @@ with app.app_context():
 app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(stripe_bp)
 
+
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
+
 
 @app.route('/')
 def home():
     return jsonify({"message": "Welcome to the Auth API"})
 
+
 @app.route('/health')
 def health():
     return jsonify({"status": "ok"}), 200
+
 
 @app.route('/api/users', methods=['GET'])
 def get_users():
     users = db.session.execute(db.select(User)).scalars().all()
     return jsonify([user.serialize() for user in users]), 200
+
 
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
 def register_user():
@@ -125,14 +120,13 @@ def register_user():
             date_of_birth=datetime.strptime(
                 date_of_birth, '%Y-%m-%d').date() if date_of_birth else None,
             password_hash=hashed_password,
-            email_verified=False  # AGREGADO
+            email_verified=False  
         )
         db.session.add(new_user)
         db.session.commit()
 
-        # Enviar email de verificación
         from api.email_service import send_verification_email
-        
+
         email_sent = False
         try:
             email_sent = send_verification_email(new_user)
@@ -162,6 +156,7 @@ def register_user():
         print(f'Error durante el registro: {e}')
         return jsonify({"message": "Ocurrió un error durante el registro"}), 500
 
+
 @app.route('/api/token', methods=['POST', 'OPTIONS'])
 def login_user():
     if request.method == 'OPTIONS':
@@ -188,7 +183,6 @@ def login_user():
             print("Password verification failed")
             return jsonify({"message": "Credenciales inválidas"}), 401
 
-        # Verificar si el email está verificado
         if not user.email_verified:
             return jsonify({
                 "message": "Por favor verifica tu email antes de iniciar sesión",
@@ -197,7 +191,6 @@ def login_user():
                 "requires_verification": True
             }), 403
 
-        # Crear token con más información del usuario
         token = create_access_token(
             identity={
                 "id": user.id,
@@ -219,12 +212,13 @@ def login_user():
                 "email": user.email,
                 "username": user.username,
                 "full_name": user.full_name,
-                "email_verified": user.email_verified  # AGREGADO
+                "email_verified": user.email_verified 
             }
         }), 200
     except Exception as e:
         print(f'Error durante el login: {e}')
         return jsonify({"message": "Ocurrió un error durante el login"}), 500
+
 
 @app.route('/api/protected', methods=['GET'])
 @jwt_required()
@@ -235,6 +229,7 @@ def protected():
     ).scalar_one_or_none()
     email = user.email if user else "Usuario"
     return jsonify({"message": f"Hola, {email}"}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=3001, host='0.0.0.0')
