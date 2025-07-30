@@ -1,20 +1,28 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Date, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
-from datetime import datetime 
+from datetime import datetime, timedelta
+import secrets
+
 
 class Base(DeclarativeBase):
     pass
 
+
 db = SQLAlchemy(model_class=Base)
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(120), nullable=False)
-    username = db.Column(db.String(80), unique=True, nullable=False)  # AÑADIR
+    username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    date_of_birth = db.Column(db.Date, nullable=True)  # AÑADIR
+    date_of_birth = db.Column(db.Date, nullable=True)
     password_hash = db.Column(db.String(200), nullable=False)
+    # verificación de email
+    email_verified = db.Column(db.Boolean, default=False, nullable=False)
+    verification_token = db.Column(db.String(100), unique=True, nullable=True)
+    verification_token_expires = db.Column(db.DateTime, nullable=True)
 
     def __repr__(self):
         return f"User(username={self.username!r}, email={self.email!r})"
@@ -25,11 +33,31 @@ class User(db.Model):
             "full_name": self.full_name,
             "username": self.username,
             "email": self.email,
-            "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None
+            "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None,
+            "email_verified": self.email_verified
         }
-    
+
+    def generate_verification_token(self):
+        """Genera un token único para verificación de email"""
+        self.verification_token = secrets.token_urlsafe(32)
+        self.verification_token_expires = datetime.utcnow() + timedelta(hours=24)
+        db.session.commit()
+        return self.verification_token
+
+    def verify_email(self, token):
+        """Verifica el email si el token es válido"""
+        if (self.verification_token == token and
+                self.verification_token_expires > datetime.utcnow()):
+            self.email_verified = True
+            self.verification_token = None
+            self.verification_token_expires = None
+            db.session.commit()
+            return True
+        return False
+
+
 class Playlist(db.Model):
-    __tablename__ = 'playlists'  # Opcional
+    __tablename__ = 'playlists'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
@@ -39,11 +67,13 @@ class Playlist(db.Model):
 
     user = relationship('User', backref=db.backref('playlists', lazy=True))
 
+
 class PlaylistSong(db.Model):
     __tablename__ = 'playlist_songs'
 
     id = db.Column(db.Integer, primary_key=True)
-    playlist_id = db.Column(db.Integer, ForeignKey('playlists.id'), nullable=False)
+    playlist_id = db.Column(db.Integer, ForeignKey(
+        'playlists.id'), nullable=False)
     song_id = db.Column(db.String(50), nullable=False)
     name = db.Column(db.String, nullable=False)
     artist = db.Column(db.String, nullable=False)

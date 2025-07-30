@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import BackendURL from './BackendURL';
+import { Eye, EyeOff } from 'lucide-react';
 
 const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,10 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+
+  // AGREGAR ESTOS DOS ESTADOS NUEVOS
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   if (!show) return null;
 
@@ -31,13 +36,11 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
   const validateForm = () => {
     const newErrors = {};
 
-
     if (!formData.fullName.trim()) {
       newErrors.fullName = 'Full name is required';
     } else if (formData.fullName.trim().length < 3) {
       newErrors.fullName = 'Full name must be at least 3 characters';
     }
-
 
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
@@ -47,7 +50,6 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
       newErrors.username = 'Username can only contain letters, numbers, and underscores';
     }
 
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
@@ -55,13 +57,12 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
       newErrors.email = 'Please enter a valid email';
     }
 
-
     if (!formData.dateOfBirth) {
       newErrors.dateOfBirth = 'Date of birth is required';
     } else {
       const birthDate = new Date(formData.dateOfBirth);
       const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear(); // Cambiar const por let
+      let age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
 
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
@@ -265,15 +266,26 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
 
               <div className="form-group">
                 <label className="form-label">Password *</label>
-                <input
-                  type="password"
-                  name="password"
-                  className={`form-input ${errors.password ? 'form-input-error' : ''}`}
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  placeholder="Create a password"
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    className={`form-input ${errors.password ? 'form-input-error' : ''}`}
+                    value={formData.password}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    placeholder="Create a password"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
                 {errors.password && (
                   <span className="form-error-message">{errors.password}</span>
                 )}
@@ -281,15 +293,26 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
 
               <div className="form-group">
                 <label className="form-label">Confirm Password *</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  className={`form-input ${errors.confirmPassword ? 'form-input-error' : ''}`}
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  placeholder="Re-enter your password"
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    className={`form-input ${errors.confirmPassword ? 'form-input-error' : ''}`}
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    placeholder="Re-enter your password"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={isLoading}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
                 {errors.confirmPassword && (
                   <span className="form-error-message">{errors.confirmPassword}</span>
                 )}

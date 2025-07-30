@@ -4,6 +4,7 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 from flask import Blueprint, request, jsonify
 import requests
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 from api.models import db, User, Playlist, PlaylistSong
 from api.utils import generate_sitemap, APIException
@@ -30,6 +31,65 @@ def admin_zone():
         return jsonify({"msg": "Acceso denegado"}), 403
 
     return jsonify({"msg": f"Bienvenido, admin {user['email']}"}), 200
+
+# --- VERIFICACIÓN DE EMAIL ---
+
+@api.route('/verify-email', methods=['POST'])
+def verify_email():
+    """Verifica el email usando el token proporcionado"""
+    data = request.get_json()
+    token = data.get('token')
+    
+    if not token:
+        return jsonify({'message': 'Verification token is required'}), 400
+    
+    user = User.query.filter_by(verification_token=token).first()
+    
+    if not user:
+        return jsonify({'message': 'Invalid verification token'}), 400
+    
+    if user.verify_email(token):
+        return jsonify({
+            'message': 'Email verified successfully!',
+            'email': user.email
+        }), 200
+    else:
+        return jsonify({'message': 'Verification token has expired'}), 400
+
+@api.route('/resend-verification', methods=['POST'])
+def resend_verification():
+    """Reenvía el email de verificación"""
+    from api.email_service import send_verification_email
+    
+    data = request.get_json()
+    email = data.get('email')
+    
+    if not email:
+        return jsonify({'message': 'Email is required'}), 400
+    
+    user = User.query.filter_by(email=email).first()
+    
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+    
+    if user.email_verified:
+        return jsonify({'message': 'Email is already verified'}), 400
+    
+    # Verificar cooldown (evitar spam)
+    if user.verification_token_expires and user.verification_token_expires > datetime.utcnow():
+        time_left = (user.verification_token_expires - datetime.utcnow()).seconds
+        if time_left > 82800:  # 23 horas
+            return jsonify({
+                'message': 'Please wait before requesting a new verification email',
+                'wait_time': 86400 - time_left  # tiempo de espera en segundos
+            }), 429
+    
+    if send_verification_email(user):
+        return jsonify({'message': 'Verification email sent successfully'}), 200
+    else:
+        return jsonify({'message': 'Failed to send verification email'}), 500
+
+# --- MÚSICA ---
 
 @api.route('/music/mood/<string:mood>', methods=['GET'])
 def get_music_by_mood(mood):

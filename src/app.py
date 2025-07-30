@@ -7,12 +7,29 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_swagger import swagger
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from api.utils import APIException, generate_sitemap
-from api.models import db, User, Playlist,  PlaylistSong
+from api.models import db, User, Playlist, PlaylistSong
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
+from flask_mail import Mail, Message
+import secrets
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
+
+# Configuración de Mail
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 2525))
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
+app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL', 'False').lower() == 'true'
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+
+mail = Mail(app)
 
 # Configuración CORS detallada
 CORS(app, resources={
@@ -37,7 +54,6 @@ jwt = JWTManager(app)
 
 # Inicializar base de datos
 db.init_app(app)
-from flask_migrate import Migrate
 migrate = Migrate(app, db)
 
 with app.app_context():
@@ -49,40 +65,29 @@ with app.app_context():
 app.register_blueprint(api, url_prefix='/api')
 
 # Manejo de errores
-
-
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
 # Ruta raíz
-
-
 @app.route('/')
 def home():
     return jsonify({"message": "Welcome to the Auth API"})
 
 # Ruta de salud para verificar que el API está funcionando
-
-
 @app.route('/health')
 def health():
     return jsonify({"status": "ok"}), 200
 
 # Obtener usuarios
-
-
 @app.route('/api/users', methods=['GET'])
 def get_users():
     users = db.session.execute(db.select(User)).scalars().all()
     return jsonify([user.serialize() for user in users]), 200
 
 # Registro de usuario
-
-
 @app.route('/api/register', methods=['POST', 'OPTIONS'])
 def register_user():
-    # Handle preflight
     if request.method == 'OPTIONS':
         return jsonify({}), 200
 
@@ -127,12 +132,36 @@ def register_user():
             email=email,
             date_of_birth=datetime.strptime(
                 date_of_birth, '%Y-%m-%d').date() if date_of_birth else None,
-            password_hash=hashed_password
+            password_hash=hashed_password,
+            email_verified=False  # AGREGADO
         )
         db.session.add(new_user)
         db.session.commit()
 
-        return jsonify({"message": "Usuario registrado correctamente"}), 201
+        # Enviar email de verificación
+        from api.email_service import send_verification_email
+        
+        email_sent = False
+        try:
+            email_sent = send_verification_email(new_user)
+            print(f"✅ Email enviado: {email_sent}")
+            print(f"📧 Email destinatario: {new_user.email}")
+            print(f"🔑 Token generado: {new_user.verification_token}")
+        except Exception as e:
+            print(f"❌ Error enviando email: {e}")
+
+        if email_sent:
+            return jsonify({
+                "message": "Usuario registrado correctamente. Por favor verifica tu email.",
+                "email": new_user.email,
+                "requires_verification": True
+            }), 201
+        else:
+            return jsonify({
+                "message": "Usuario registrado pero no pudimos enviar el email de verificación. Por favor intenta reenviar.",
+                "email": new_user.email,
+                "requires_verification": True
+            }), 201
 
     except ValueError as e:
         return jsonify({"message": f"Error en el formato de fecha: {str(e)}"}), 400
@@ -142,11 +171,8 @@ def register_user():
         return jsonify({"message": "Ocurrió un error durante el registro"}), 500
 
 # Login de usuario
-
-
 @app.route('/api/token', methods=['POST', 'OPTIONS'])
 def login_user():
-    # Handle preflight
     if request.method == 'OPTIONS':
         return jsonify({}), 200
 
@@ -156,7 +182,7 @@ def login_user():
         email = data.get("email")
         password = data.get("password")
 
-        print(f"Login attempt with email: {email}")  # DEBUG
+        print(f"Login attempt with email: {email}")
 
         if not email or not password:
             return jsonify({"message": "Correo y contraseña requeridos"}), 400
@@ -166,16 +192,23 @@ def login_user():
         ).scalar_one_or_none()
 
         if not user:
-            print(f"User not found with email: {email}")  # DEBUG
+            print(f"User not found with email: {email}")
             return jsonify({"message": "Credenciales inválidas"}), 401
 
-        print(f"User found: {user.email}, checking password...")  # DEBUG
+        print(f"User found: {user.email}, checking password...")
 
         if not check_password_hash(user.password_hash, password):
-            print("Password verification failed")  # DEBUG
+            print("Password verification failed")
             return jsonify({"message": "Credenciales inválidas"}), 401
 
-        # ... resto del código
+        # Verificar si el email está verificado
+        if not user.email_verified:
+            return jsonify({
+                "message": "Por favor verifica tu email antes de iniciar sesión",
+                "email_verified": False,
+                "email": user.email,
+                "requires_verification": True
+            }), 403
 
         # Crear token con más información del usuario
         token = create_access_token(
@@ -199,7 +232,8 @@ def login_user():
                 "id": user.id,
                 "email": user.email,
                 "username": user.username,
-                "full_name": user.full_name
+                "full_name": user.full_name,
+                "email_verified": user.email_verified  # AGREGADO
             }
         }), 200
 
@@ -208,8 +242,6 @@ def login_user():
         return jsonify({"message": "Ocurrió un error durante el login"}), 500
 
 # Ruta protegida
-
-
 @app.route('/api/protected', methods=['GET'])
 @jwt_required()
 def protected():
