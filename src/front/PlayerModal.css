@@ -4,7 +4,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(248, 248, 248, 0);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,7 +12,7 @@
 }
 
 .playermodal-content {
-  background: #111;
+  background: #00000067;
   padding: 2rem;
   border-radius: 12px;
   color: white;

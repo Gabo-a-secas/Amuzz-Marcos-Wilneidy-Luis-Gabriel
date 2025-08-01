@@ -14,8 +14,7 @@ load_dotenv()
 
 api = Blueprint('api', __name__)
 
-# JAMENDO API - obtener música por estado de ánimo
-JAMENDO_CLIENT_ID = os.getenv("JAMENDO_CLIENT_ID", "64b5cce9")  # valor por defecto
+JAMENDO_CLIENT_ID = os.getenv("JAMENDO_CLIENT_ID", "64b5cce9") 
 
 @api.route('/hello', methods=['GET', 'POST'])
 def handle_hello():
@@ -98,17 +97,16 @@ def get_music_by_mood(mood):
         params = {
             "client_id": JAMENDO_CLIENT_ID,
             "format": "json",
-            "limit": 10,
+            "limit": 20,
             "audioformat": "mp31",
             "include": "musicinfo",
-            "tags": mood,
+            "fuzzytags": mood,
             "audiodownload_allowed": "true"
         }
-
         response = requests.get(url, params=params)
         if response.status_code != 200:
             raise APIException("Error al conectar con Jamendo", 500)
-
+        
         tracks = response.json().get("results", [])
         simplified = [
             {
@@ -116,14 +114,21 @@ def get_music_by_mood(mood):
                 "name": track["name"],
                 "artist": track["artist_name"],
                 "audio": track["audio"],
-                "image": track["album_image"],
-                "license": track["license_ccurl"]
+                "image": track.get("album_image") or track.get("image"),
+                "license": track["license_ccurl"],
+                
+                "duration": track["duration"],
+                "album_name": track["album_name"],
+                "release_date": track["releasedate"],
+                "waveform": track["waveform"],
+                "genres": track["musicinfo"]["tags"]["genres"],
             }
             for track in tracks
         ]
 
-        return jsonify(simplified), 200
+        
 
+        return jsonify(simplified), 200
     except Exception as e:
         raise APIException(str(e), 500)
 
