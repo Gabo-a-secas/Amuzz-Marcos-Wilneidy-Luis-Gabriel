@@ -1,6 +1,8 @@
 import { useState, useContext } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import BackendURL from './BackendURL';
 import { StoreContext } from "../hooks/useGlobalReducer";
+import EmailVerificationBanner from './EmailVerificationBanner';
 
 const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
   const { dispatch } = useContext(StoreContext);
@@ -12,6 +14,11 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // NUEVOS ESTADOS PARA VERIFICACIÓN
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
 
   if (!show) return null;
 
@@ -24,6 +31,12 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
 
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    
+    // Resetear estado de verificación cuando cambie el email
+    if (name === 'email' && needsVerification) {
+      setNeedsVerification(false);
+      setUnverifiedEmail('');
     }
   };
 
@@ -51,6 +64,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
 
     setIsLoading(true);
     setErrors({});
+    setNeedsVerification(false);
 
     try {
       const response = await fetch(`${BackendURL}/api/token`, {
@@ -64,10 +78,8 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
       if (response.ok) {
         const { token, user } = data;
 
-        // Guardar en localStorage
         localStorage.setItem('token', token);
 
-        // Actualizar el estado global
         dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
 
         if (onLoginSuccess) {
@@ -79,9 +91,18 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
         setFormData({ email: '', password: '' });
         onClose();
       } else {
-        setErrors({
-          general: data.message || 'Login failed. Please check your credentials.'
-        });
+        // MANEJAR CASO DE EMAIL NO VERIFICADO
+        if (response.status === 403 && data.requires_verification) {
+          setNeedsVerification(true);
+          setUnverifiedEmail(data.email);
+          setErrors({
+            general: data.message || 'Please verify your email before logging in.'
+          });
+        } else {
+          setErrors({
+            general: data.message || 'Login failed. Please check your credentials.'
+          });
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -95,6 +116,14 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
     if (!isLoading) onClose();
   };
 
+  // FUNCIÓN PARA MANEJAR EL CIERRE Y LIMPIAR ESTADOS
+  const handleClose = () => {
+    setNeedsVerification(false);
+    setUnverifiedEmail('');
+    setErrors({});
+    onClose();
+  };
+
   return (
     <div className="modal-backdrop" onClick={handleBackdropClick}>
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
@@ -104,13 +133,18 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
             <button
               type="button"
               className="modal-close-btn"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isLoading}
               aria-label="Close"
             />
           </div>
 
           <div className="modal-body">
+            {/* MOSTRAR BANNER DE VERIFICACIÓN SI ES NECESARIO */}
+            {needsVerification && unverifiedEmail && (
+              <EmailVerificationBanner email={unverifiedEmail} />
+            )}
+
             <form className="modal-form" onSubmit={handleSubmit}>
               {errors.general && <div className="form-alert form-alert-danger">{errors.general}</div>}
 
@@ -132,16 +166,27 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
 
               <div className="form-group">
                 <label className="form-label">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  className={`form-input ${errors.password ? 'form-input-error' : ''}`}
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  placeholder="Enter your password"
-                  autoComplete="current-password"
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    className={`form-input ${errors.password ? 'form-input-error' : ''}`}
+                    value={formData.password}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
                 {errors.password && <span className="form-error-message">{errors.password}</span>}
               </div>
 
@@ -161,7 +206,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="modal-btn modal-btn-secondary" onClick={onClose} disabled={isLoading}>
+            <button type="button" className="modal-btn modal-btn-secondary" onClick={handleClose} disabled={isLoading}>
               Cancel
             </button>
             <button type="submit" className="modal-btn modal-btn-primary" onClick={handleSubmit} disabled={isLoading}>
@@ -186,7 +231,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
               onClick={() => onSwitchToRegister && onSwitchToRegister()}
               disabled={isLoading}
             >
-              Create an account
+              Register
             </button>
           </div>
         </div>
