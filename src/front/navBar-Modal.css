@@ -120,12 +120,14 @@
   justify-content: center;
   z-index: 2000;
   animation: fadeIn 0.3s ease;
+  user-select: none;
 }
 
 .modal-dialog {
   width: 90%;
   max-width: 500px;
   animation: slideUp 0.3s ease;
+  user-select: auto;
 }
 
 .modal-content {
@@ -462,3 +464,47 @@
   cursor: not-allowed;
 }
 
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrapper .form-input {
+  padding-right: 45px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  color: #6c757d;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.password-toggle-btn:hover:not(:disabled) {
+  color: #beddb8;
+  background-color: rgba(190, 221, 184, 0.1);
+}
+
+.password-toggle-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(190, 221, 184, 0.3);
+}
+
+.password-toggle-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.password-toggle-btn svg {
+  display: block;
+}

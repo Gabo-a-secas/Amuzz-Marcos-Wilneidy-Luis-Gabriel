@@ -1,2 +1,2 @@
-const BackendURL = import.meta.env.VITE_BACKEND_URL || "https://glorious-fortnight-v6rxqj4rxwxxh6wr-3001.app.github.dev/";
-export default BackendURL;
+const BackendURL = import.meta.env.VITE_BACKEND_URL || "https://legendary-eureka-975rxjgrgp6v3xjrr-3001.app.github.dev";
+export default BackendURL;                             

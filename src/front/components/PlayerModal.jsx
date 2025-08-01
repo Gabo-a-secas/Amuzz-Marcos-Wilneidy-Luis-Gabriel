@@ -1,12 +1,9 @@
 import { usePlayer } from "../hooks/PlayerContext";
 import { FaTimes } from "react-icons/fa";
 import "../PlayerModal.css";
-
 export const PlayerModal = () => {
   const { track, expanded, collapsePlayer } = usePlayer();
-
   if (!expanded || !track) return null;
-
   return (
     <div className="playermodal-overlay">
       <div className="playermodal-content">

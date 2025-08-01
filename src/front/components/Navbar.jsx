@@ -7,12 +7,14 @@ import PremiumButton from "../components/PremiumButton";
 const Navbar = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [loggedUser, setLoggedUser] = useState(null);
   const location = useLocation();
 
   const isHomePage = location.pathname === '/';
 
   const handleLoginSuccess = (userData) => {
     console.log('Usuario logueado:', userData);
+    setLoggedUser(userData);
     // Aquí voy agregar la actualizacion del estado del usuario
   };
 
@@ -40,11 +42,15 @@ const Navbar = () => {
             <img className="navbar-logo" src="/amuzz_logo.png" alt="amuzz_logo" />
             <h2 className="navbar-amuzz">Amuzz</h2>
           </Link>
+          
         </div>
 
         <ul className="navbar-nav">
           <hr className="navbar-divider" />
-          {isHomePage && (
+          {loggedUser && (
+            <p className="navbar-username">Hola, {loggedUser.username}!</p>  
+          )}
+          {!loggedUser && isHomePage && (
             <>
               <li className="navbar-nav-item">
                 <button
@@ -72,7 +78,7 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {isHomePage && (
+      {!loggedUser && isHomePage && (
         <>
           <LoginModal
             show={showLoginModal}
