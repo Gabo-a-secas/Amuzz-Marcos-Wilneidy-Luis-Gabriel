@@ -27,13 +27,12 @@ const Mood = () => {
 
       <div className="contenido-encima">
         <h2>¿Cómo te sientes hoy?</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-8 max-w-4xl mx-auto px-4">
           {moods.map((moodObj) => (
             <button
               key={moodObj.genre}
               onClick={() => handleSelectMood(moodObj)}
-              className="w-48 h-48 flex flex-col justify-center items-center border-2 border-white rounded-xl shadow-md hover:bg-white/10 transition text-black"
-            >
+              className="mood-btn">
               <span className="text-xl font-semibold">{moodObj.label}</span>
             </button>
           ))}
