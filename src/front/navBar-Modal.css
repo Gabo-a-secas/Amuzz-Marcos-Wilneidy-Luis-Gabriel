@@ -13,12 +13,9 @@
   overflow-y: auto;
   transition: all 0.3s ease;
   animation: slideIn 0.3s ease-out;
-}
-
-.navbar-sidebar {
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Esto empuja el botón al fondo */
+  justify-content: space-between;
 }
 
 .navbar-premium-button {
@@ -464,3 +461,4 @@
   background-color: #f8f9fa;
   cursor: not-allowed;
 }
+

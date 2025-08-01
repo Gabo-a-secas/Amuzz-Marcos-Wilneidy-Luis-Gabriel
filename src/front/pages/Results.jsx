@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { usePlayer } from "../hooks/PlayerContext";
+import { FaPlay } from "react-icons/fa";
 import "../results.css";
 
 const Results = () => {
@@ -13,11 +14,13 @@ const Results = () => {
   const [loading, setLoading] = useState(true);
   const { openPlayer } = usePlayer();
 
+
   useEffect(() => {
     if (!mood) return;
     fetch(`/api/music/mood/${mood}`)
       .then((res) => res.json())
       .then((data) => {
+        console.log("Datos recibidos del backend:", data);
         setTracks(data);
         setLoading(false);
       })
@@ -34,42 +37,93 @@ const Results = () => {
       artist: track.artist,
       audio: track.audio,
       image: track.image,
+      duration: track.duration,
+      genre: track.genres,
+      album_name: track.album_name,
+      release_date: track.release_date,
+      waveform: track.waveform,
+      genres: track.genres,
+
+
     });
   };
 
+  const formatDuration = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+
   return (
-    <div className="results-container">
+    <div className={`results-container`}>
       <video autoPlay loop muted playsInline className="background-video">
         <source src="/fondo.mp4" type="video/mp4" />
       </video>
 
       <div className="content-overlay">
         <h2 className="results-title">
-          Música sugerida según: {label}
+          Para este mood te sugiero:
         </h2>
 
         {loading ? (
-          <p className="results-loading">🎧 Cargando música...</p>
+          <p className="results-loading">Cargando música...</p>
         ) : tracks.length === 0 ? (
-          <p className="results-empty">😔 No encontramos música para ese mood.</p>
+          <p className="results-empty">No encontramos música para ese mood.</p>
         ) : (
-          <ul className="track-list">
+          <div className="results-list">
             {tracks.map((track) => (
-              <li key={track.id} className="track-item">
-                <img src={track.image} alt={track.name} className="track-image" />
-                <div className="track-info">
+
+
+              <div key={track.id} className="music-card">
+                <img
+                  src={track.image || "/music-icon.png"}
+                  alt={track.name}
+                  className="music-icon"
+                />
+
+                <div className="music-info">
                   <h3 className="track-name">{track.name}</h3>
                   <p className="track-artist">{track.artist}</p>
+                  <p className="duration">{formatDuration(track.duration)}</p>
                 </div>
-                <button
-                  className="play-button"
-                  onClick={() => handleEscuchar(track)}
-                >
-                  ▶️
-                </button>
-              </li>
+
+                {(() => {
+                  try {
+                    const waveformObj = typeof track.waveform === "string"
+                      ? JSON.parse(track.waveform)
+                      : track.waveform;
+
+                    const peaks = waveformObj?.peaks;
+
+                    return Array.isArray(peaks) ? (
+                      <div style={{ transform: 'translateX(-200px)' }} className="waveform-mini">
+                        {peaks.slice(0, 40).map((value, i) => (
+                          <div
+                            key={i}
+                            className="wave-bar-mini"
+                            style={{
+                              height: `${Math.max(4, value * 0.6)}px`,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    ) : null;
+                  } catch (e) {
+                    console.error("Waveform parse error:", e);
+                    return null;
+                  }
+                })()}
+
+
+
+                <FaPlay onClick={() => handleEscuchar(track)} className="icon" />
+              </div>
+
+
+
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>
