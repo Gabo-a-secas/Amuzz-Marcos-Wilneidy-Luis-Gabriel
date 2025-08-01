@@ -22,9 +22,9 @@ cloudinary = "*"
 flask-admin = "*"
 typing-extensions = "*"
 werkzeug = "*"
-requests = "*"
 psycopg2-binary = "*"
 stripe = "*"
+requests = "*"
 
 [requires]
 python_version = "3.13"
