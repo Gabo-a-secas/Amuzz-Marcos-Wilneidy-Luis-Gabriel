@@ -82,9 +82,12 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
 
         dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
 
-        if (onLoginSuccess) onLoginSuccess({ user, token });
+        if (onLoginSuccess) {
+          onLoginSuccess(data.user);
+        }
 
         alert(data.message || 'Login successful!');
+
         setFormData({ email: '', password: '' });
         onClose();
       } else {

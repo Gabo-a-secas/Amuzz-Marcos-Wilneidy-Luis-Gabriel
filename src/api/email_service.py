@@ -6,11 +6,11 @@ from datetime import datetime, timedelta
 def send_verification_email(user):
     """Envía email de verificación al usuario"""
     try:
-        # Importar mail desde app (evitar import circular)
+    
         from flask import current_app
         mail = current_app.extensions['mail']
         
-        # Generar token de verificación
+    
         user.verification_token = secrets.token_urlsafe(32)
         user.verification_token_expires = datetime.utcnow() + timedelta(hours=24)
         
