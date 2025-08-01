@@ -36,7 +36,7 @@ mail = Mail(app)
 CORS(app, resources={
     r"/*": {
         "origins": [
-            "https://legendary-eureka-975xjgrpgp6v3xjpr-3000.app.github.dev",
+            "https://legendary-eureka-975rxjgrgp6v3xjrr-3000.app.github.dev",
             "https://*.github.dev",
             "http://localhost:*",
             "http://localhost:5173"
@@ -120,7 +120,7 @@ def register_user():
             date_of_birth=datetime.strptime(
                 date_of_birth, '%Y-%m-%d').date() if date_of_birth else None,
             password_hash=hashed_password,
-            email_verified=False  
+            email_verified=False
         )
         db.session.add(new_user)
         db.session.commit()
@@ -212,7 +212,7 @@ def login_user():
                 "email": user.email,
                 "username": user.username,
                 "full_name": user.full_name,
-                "email_verified": user.email_verified 
+                "email_verified": user.email_verified
             }
         }), 200
     except Exception as e:
