@@ -44,7 +44,7 @@ const Home = () => {
         <img className="home-logo" src="/amuzz_logo.png" alt="amuzz_logo" />
         <button
           onClick={() => navigate("/Mood")}
-          className="bg-white text-purple-700 px-6 py-3 mt-6 rounded-full shadow-lg hover:bg-purple-100 transition"
+          className="mood-btn mt-20"
         >
           Elige tu mood
         </button>

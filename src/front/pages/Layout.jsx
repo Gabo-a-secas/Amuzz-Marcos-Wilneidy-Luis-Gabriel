@@ -6,16 +6,18 @@ import PlayerWrapper from "../components/PlayerWrapper";
 const Layout = () => {
   return (
     <ScrollToTop>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col relative">
+        {/* Z-index 10 to ensure navbar goes above outlet content */}
         <Navbar />
-
-        <main className="flex-grow">
+        
+        {/* Main content, grows to fill space above player */}
+        <main className="flex-grow relative z-0">
           <Outlet />
         </main>
-      </div>
 
-      
-      <PlayerWrapper />
+        {/* Player fixed to bottom, above everything */}
+        <PlayerWrapper />
+      </div>
     </ScrollToTop>
   );
 };

@@ -8,6 +8,7 @@ const Navbar = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [loggedUser, setLoggedUser] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
   const isHomePage = location.pathname === '/';
@@ -15,7 +16,7 @@ const Navbar = () => {
   const handleLoginSuccess = (userData) => {
     console.log('Usuario logueado:', userData);
     setLoggedUser(userData);
-    // Aquí voy agregar la actualizacion del estado del usuario
+    setIsOpen(false);
   };
 
   const handleRegisterSuccess = (email) => {
@@ -34,49 +35,117 @@ const Navbar = () => {
     setShowLoginModal(true);
   };
 
+  const toggleNavbar = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const shouldShowSidebar = !loggedUser || isOpen;
+
   return (
     <>
-      <nav className="navbar-sidebar">
-        <div>
-          <Link to="/" className="logo-link">
-            <img className="navbar-logo" src="/amuzz_logo.png" alt="amuzz_logo" />
-            <h2 className="navbar-amuzz">Amuzz</h2>
-          </Link>
-          
-        </div>
+      <button className="navbar-toggle" onClick={toggleNavbar}>
+        {isOpen ? '✖' : '☰'}
+      </button>
 
-        <ul className="navbar-nav">
-          <hr className="navbar-divider" />
-          {loggedUser && (
-            <p className="navbar-username">Hola, {loggedUser.username}!</p>  
-          )}
-          {!loggedUser && isHomePage && (
-            <>
-              <li className="navbar-nav-item">
-                <button
-                  className="navbar-btn navbar-btn-primary"
-                  onClick={() => setShowLoginModal(true)}
-                >
-                  Login
-                </button>
-              </li>
-              <li className="navbar-nav-item">
-                <button
-                  className="navbar-btn navbar-btn-outline"
-                  onClick={() => setShowRegisterModal(true)}
-                >
-                  Register
-                </button>
-              </li>
-            </>
-          )}
-        </ul>
+      {shouldShowSidebar && (
+        <nav className={`navbar-sidebar ${loggedUser ? (isOpen ? 'open' : 'closed') : 'open'}`}>
+          <div>
+            <Link to="/" className="logo-link">
+              <img className="navbar-logo" src="/amuzz_logo.png" alt="amuzz_logo" />
+              <h2 className="navbar-amuzz">Amuzz</h2>
+            </Link>
+          </div>
 
+          <ul className="navbar-nav">
+            <hr className="navbar-divider" />
 
-        <div className="navbar-premium-button">
-          <PremiumButton />
-        </div>
-      </nav>
+            {!loggedUser && isHomePage && (
+              <>
+                <li className="navbar-nav-item">
+                  <button
+                    className="navbar-btn navbar-btn-primary"
+                    onClick={() => setShowLoginModal(true)}
+                  >
+                    Login
+                  </button>
+                </li>
+                <li className="navbar-nav-item">
+                  <button
+                    className="navbar-btn navbar-btn-outline"
+                    onClick={() => setShowRegisterModal(true)}
+                  >
+                    Register
+                  </button>
+                </li>
+              </>
+            )}
+
+            {loggedUser && (
+              <>
+                <p className="navbar-username">Hola, {loggedUser.username}!</p>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'happy', label: 'Feliz' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Feliz
+                  </Link>
+                </li>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'sad', label: 'Triste' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Triste
+                  </Link>
+                </li>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'anxiety', label: 'Ansioso' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Ansioso
+                  </Link>
+                </li>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'party', label: 'Fiesta' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Fiesta
+                  </Link>
+                </li>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'relax', label: 'Relajado' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Relajado
+                  </Link>
+                </li>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'latin', label: 'Latino' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Latino
+                  </Link>
+                </li>
+              </>
+            )}
+          </ul>
+
+          <div className="navbar-premium-button">
+            <PremiumButton />
+          </div>
+        </nav>
+      )}
 
       {!loggedUser && isHomePage && (
         <>
