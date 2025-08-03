@@ -12,7 +12,6 @@ const VerifyEmail = () => {
     const VerifyEmail = async () => {
       const token = searchParams.get('token');
       
-      // Debug logs
       console.log('🔍 Token extraído:', token);
       console.log('🏠 BackendURL:', BackendURL);
       
@@ -43,16 +42,13 @@ const VerifyEmail = () => {
           setStatus('success');
           setMessage(data.message || 'Email verified successfully!');
           
-          // Redirigir después de 3 segundos
           setTimeout(() => {
             navigate('/');
           }, 3000);
         } else {
-          // Manejar diferentes tipos de errores
           console.error('❌ Error del servidor:', data);
           setStatus('error');
           
-          // Personalizar mensajes según el error
           if (response.status === 400) {
             setMessage(data.message || 'Invalid or expired verification link.');
           } else if (response.status === 404) {
@@ -65,7 +61,6 @@ const VerifyEmail = () => {
         console.error('❌ Network error:', error);
         setStatus('error');
         
-        // Mensaje más específico para errores de red
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
           setMessage('Unable to connect to server. Please check your internet connection.');
         } else {

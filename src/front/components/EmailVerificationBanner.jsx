@@ -5,7 +5,7 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState(''); // 'success' | 'error'
+  const [messageType, setMessageType] = useState(''); 
 
   useEffect(() => {
     if (resendCooldown > 0) {
@@ -14,7 +14,6 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
     }
   }, [resendCooldown]);
 
-  // Limpiar mensaje después de 5 segundos
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => {
@@ -37,7 +36,7 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
     }
 
     setIsResending(true);
-    setMessage(''); // Limpiar mensaje anterior
+    setMessage(''); 
     
     console.log('🔄 Reenviando email de verificación para:', email);
 
@@ -55,14 +54,12 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
 
       if (response.ok) {
         showMessage(data.message || 'Verification email sent! Please check your inbox.', 'success');
-        setResendCooldown(60); // Cooldown de 60 segundos
+        setResendCooldown(60);
         
-        // Llamar callback si existe
         if (onResendEmail) {
           onResendEmail(true);
         }
       } else {
-        // Manejar errores específicos
         if (response.status === 400) {
           showMessage(data.message || 'Invalid email address', 'error');
         } else if (response.status === 404) {

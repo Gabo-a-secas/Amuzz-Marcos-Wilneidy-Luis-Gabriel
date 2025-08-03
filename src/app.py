@@ -105,7 +105,7 @@ def verify_email(token):
             return jsonify({"message": "Email ya verificado anteriormente"}), 200
         
         if user.verify_email(token):
-            db.session.commit()  # ✅ Commit controlado aquí
+            db.session.commit()
             print(f"✅ Email verificado: {user.email}")
             return jsonify({
                 "message": "Email verificado exitosamente",

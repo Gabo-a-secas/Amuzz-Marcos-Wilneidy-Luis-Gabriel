@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import './navBar-Modal.css';
 import './player.css';
+import 'animate.css';
 import { RouterProvider } from 'react-router-dom';
 import { StoreProvider } from './hooks/useGlobalReducer';
 import { PlayerProvider } from './hooks/PlayerContext'

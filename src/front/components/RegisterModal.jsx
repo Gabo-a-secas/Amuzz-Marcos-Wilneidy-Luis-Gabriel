@@ -26,11 +26,9 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
       [name]: value
     }));
 
-    // Limpiar errores cuando el usuario comience a escribir
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
-    // También limpiar error general
     if (errors.general) {
       setErrors((prev) => ({ ...prev, general: '' }));
     }
@@ -138,7 +136,6 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
           onRegisterSuccess(formData.email.trim());
         }
 
-        // Limpiar formulario
         setFormData({
           fullName: '',
           username: '',
@@ -150,9 +147,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
 
         onClose();
       } else {
-        // Manejo de errores mejorado
         if (response.status === 409) {
-          // Conflicto - usuario o email ya existe
           if (data.message && data.message.toLowerCase().includes('email')) {
             setErrors({ email: data.message || 'This email is already registered' });
           } else if (data.message && data.message.toLowerCase().includes('username')) {
@@ -161,17 +156,14 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
             setErrors({ general: data.message || 'User already exists' });
           }
         } else if (response.status === 400) {
-          // Errores de validación
           if (data.message && data.message.toLowerCase().includes('password')) {
             setErrors({ confirmPassword: data.message });
           } else if (data.errors) {
-            // Si el backend devuelve errores específicos por campo
             setErrors(data.errors);
           } else {
             setErrors({ general: data.message || 'Invalid data provided' });
           }
         } else if (response.status === 422) {
-          // Errores de validación específicos
           if (data.errors) {
             setErrors(data.errors);
           } else {

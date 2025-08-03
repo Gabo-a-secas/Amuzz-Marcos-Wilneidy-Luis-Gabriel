@@ -7,7 +7,6 @@ def send_verification_email(user):
     try:
         mail = current_app.extensions['mail']
         
-        # Usar el token ya generado, NO generar uno nuevo
         token = user.verification_token
         if not token:
             print("❌ No hay token generado")
