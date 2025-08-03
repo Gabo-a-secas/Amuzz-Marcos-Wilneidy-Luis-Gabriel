@@ -16,7 +16,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  // NUEVOS ESTADOS PARA VERIFICACIÓN
+  // ESTADOS PARA VERIFICACIÓN
   const [needsVerification, setNeedsVerification] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
 
@@ -66,6 +66,8 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
     setErrors({});
     setNeedsVerification(false);
 
+    console.log('🔐 Intentando login para:', formData.email);
+
     try {
       const response = await fetch(`${BackendURL}/api/token`, {
         method: 'POST',
@@ -74,46 +76,68 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
       });
 
       const data = await response.json();
+      console.log('📡 Respuesta del login:', data);
 
       if (response.ok) {
         const { token, user } = data;
 
         localStorage.setItem('token', token);
-
         dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
 
         if (onLoginSuccess) {
           onLoginSuccess(data.user);
         }
 
-        alert(data.message || 'Login successful!');
-
+        console.log('✅ Login exitoso para:', user.email);
+        // Mejor UX: mensaje de éxito sin alert
         setFormData({ email: '', password: '' });
         onClose();
       } else {
+        console.log('❌ Error de login:', response.status, data);
+        
         // MANEJAR CASO DE EMAIL NO VERIFICADO
         if (response.status === 403 && data.requires_verification) {
+          console.log('📧 Email no verificado, mostrando banner');
           setNeedsVerification(true);
-          setUnverifiedEmail(data.email);
+          setUnverifiedEmail(data.email || formData.email);
           setErrors({
             general: data.message || 'Please verify your email before logging in.'
           });
+        } else if (response.status === 401) {
+          setErrors({
+            general: 'Invalid email or password. Please check your credentials.'
+          });
+        } else if (response.status === 404) {
+          setErrors({
+            general: 'User not found. Please check your email or register.'
+          });
         } else {
           setErrors({
-            general: data.message || 'Login failed. Please check your credentials.'
+            general: data.message || 'Login failed. Please try again.'
           });
         }
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setErrors({ general: 'Network error. Please check your connection and try again.' });
+      console.error('❌ Error de red en login:', error);
+      
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        setErrors({ 
+          general: 'Unable to connect to server. Please check your internet connection.' 
+        });
+      } else {
+        setErrors({ 
+          general: 'Network error. Please check your connection and try again.' 
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleBackdropClick = (e) => {
-    if (!isLoading) onClose();
+    if (e.target === e.currentTarget && !isLoading) {
+      handleClose();
+    }
   };
 
   // FUNCIÓN PARA MANEJAR EL CIERRE Y LIMPIAR ESTADOS
@@ -121,7 +145,23 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
     setNeedsVerification(false);
     setUnverifiedEmail('');
     setErrors({});
+    setFormData({ email: '', password: '' }); // Limpiar formulario también
     onClose();
+  };
+
+  // CALLBACK PARA CUANDO SE REENVÍA EMAIL
+  const handleResendEmail = (success) => {
+    if (success) {
+      console.log('📧 Email de verificación reenviado');
+      // Opcionalmente podrías mostrar un mensaje de éxito
+    }
+  };
+
+  // CALLBACK PARA CERRAR BANNER DE VERIFICACIÓN
+  const handleCloseBanner = () => {
+    setNeedsVerification(false);
+    setUnverifiedEmail('');
+    // Mantener el error general para que el usuario sepa por qué no pudo hacer login
   };
 
   return (
@@ -142,11 +182,19 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
           <div className="modal-body">
             {/* MOSTRAR BANNER DE VERIFICACIÓN SI ES NECESARIO */}
             {needsVerification && unverifiedEmail && (
-              <EmailVerificationBanner email={unverifiedEmail} />
+              <EmailVerificationBanner 
+                email={unverifiedEmail}
+                onResendEmail={handleResendEmail}
+                onClose={handleCloseBanner}
+              />
             )}
 
             <form className="modal-form" onSubmit={handleSubmit}>
-              {errors.general && <div className="form-alert form-alert-danger">{errors.general}</div>}
+              {errors.general && (
+                <div className="form-alert form-alert-danger">
+                  {errors.general}
+                </div>
+              )}
 
               <div className="form-group">
                 <label className="form-label">Email</label>
@@ -196,6 +244,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
                   className="form-link"
                   onClick={(e) => {
                     e.preventDefault();
+                    // TODO: Implementar recuperación de contraseña
                     alert('Forgot password functionality coming soon!');
                   }}
                 >
@@ -206,10 +255,20 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="modal-btn modal-btn-secondary" onClick={handleClose} disabled={isLoading}>
+            <button 
+              type="button" 
+              className="modal-btn modal-btn-secondary" 
+              onClick={handleClose} 
+              disabled={isLoading}
+            >
               Cancel
             </button>
-            <button type="submit" className="modal-btn modal-btn-primary" onClick={handleSubmit} disabled={isLoading}>
+            <button 
+              type="submit" 
+              className="modal-btn modal-btn-primary" 
+              onClick={handleSubmit} 
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <>
                   <span className="form-spinner" /> Logging in...

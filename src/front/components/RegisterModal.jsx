@@ -14,8 +14,6 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-
-  // AGREGAR ESTOS DOS ESTADOS NUEVOS
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -28,8 +26,13 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
       [name]: value
     }));
 
+    // Limpiar errores cuando el usuario comience a escribir
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+    // También limpiar error general
+    if (errors.general) {
+      setErrors((prev) => ({ ...prev, general: '' }));
     }
   };
 
@@ -46,14 +49,14 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
       newErrors.username = 'Username is required';
     } else if (formData.username.trim().length < 3) {
       newErrors.username = 'Username must be at least 3 characters';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username.trim())) {
       newErrors.username = 'Username can only contain letters, numbers, and underscores';
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!emailRegex.test(formData.email)) {
+    } else if (!emailRegex.test(formData.email.trim())) {
       newErrors.email = 'Please enter a valid email';
     }
 
@@ -102,28 +105,40 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
 
     try {
       const apiURL = `${BackendURL.replace(/\/$/, '')}/api/register`;
+      console.log('Registering with URL:', apiURL);
+      
+      const requestBody = {
+        full_name: formData.fullName.trim(),
+        username: formData.username.trim(),
+        email: formData.email.trim().toLowerCase(),
+        date_of_birth: formData.dateOfBirth,
+        password: formData.password,
+        confirm_password: formData.confirmPassword
+      };
+
+      console.log('Request body:', { ...requestBody, password: '[HIDDEN]', confirm_password: '[HIDDEN]' });
+
       const response = await fetch(apiURL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          full_name: formData.fullName,
-          username: formData.username,
-          email: formData.email,
-          date_of_birth: formData.dateOfBirth,
-          password: formData.password,
-          confirm_password: formData.confirmPassword
-        })
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response data:', data);
 
       if (response.ok) {
-        alert(data.message || 'Registration successful!');
+        alert(data.message || 'Registration successful! Please check your email to verify your account.');
 
         if (onRegisterSuccess) {
-          onRegisterSuccess(formData.email);
+          onRegisterSuccess(formData.email.trim());
         }
 
+        // Limpiar formulario
         setFormData({
           fullName: '',
           username: '',
@@ -135,19 +150,32 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
 
         onClose();
       } else {
+        // Manejo de errores mejorado
         if (response.status === 409) {
-          if (data.message.includes('correo')) {
+          // Conflicto - usuario o email ya existe
+          if (data.message && data.message.toLowerCase().includes('email')) {
             setErrors({ email: data.message || 'This email is already registered' });
-          } else if (data.message.includes('username')) {
+          } else if (data.message && data.message.toLowerCase().includes('username')) {
             setErrors({ username: data.message || 'This username is already taken' });
           } else {
-            setErrors({ general: data.message });
+            setErrors({ general: data.message || 'User already exists' });
           }
         } else if (response.status === 400) {
-          if (data.message.includes('contraseñas no coinciden')) {
+          // Errores de validación
+          if (data.message && data.message.toLowerCase().includes('password')) {
             setErrors({ confirmPassword: data.message });
+          } else if (data.errors) {
+            // Si el backend devuelve errores específicos por campo
+            setErrors(data.errors);
           } else {
-            setErrors({ general: data.message });
+            setErrors({ general: data.message || 'Invalid data provided' });
+          }
+        } else if (response.status === 422) {
+          // Errores de validación específicos
+          if (data.errors) {
+            setErrors(data.errors);
+          } else {
+            setErrors({ general: data.message || 'Validation error' });
           }
         } else {
           setErrors({ general: data.message || 'Registration failed. Please try again.' });
@@ -162,7 +190,9 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
   };
 
   const handleBackdropClick = (e) => {
-    if (!isLoading) onClose();
+    if (e.target === e.currentTarget && !isLoading) {
+      onClose();
+    }
   };
 
   const maxDate = new Date();
@@ -182,7 +212,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
             <button
               type="button"
               className="modal-close-btn"
-              onClick={onClose}
+              onClick={() => !isLoading && onClose()}
               disabled={isLoading}
               aria-label="Close"
             />
@@ -204,6 +234,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
                   onChange={handleChange}
                   disabled={isLoading}
                   placeholder="Enter your full name"
+                  autoComplete="name"
                 />
                 {errors.fullName && (
                   <span className="form-error-message">{errors.fullName}</span>
@@ -220,6 +251,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
                   onChange={handleChange}
                   disabled={isLoading}
                   placeholder="Choose a username"
+                  autoComplete="username"
                 />
                 {errors.username && (
                   <span className="form-error-message">{errors.username}</span>
@@ -236,6 +268,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
                   onChange={handleChange}
                   disabled={isLoading}
                   placeholder="Enter your email"
+                  autoComplete="email"
                 />
                 {errors.email && (
                   <span className="form-error-message">{errors.email}</span>
@@ -253,6 +286,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
                   disabled={isLoading}
                   min={minDateString}
                   max={maxDateString}
+                  autoComplete="bday"
                 />
                 {errors.dateOfBirth && (
                   <span className="form-error-message">{errors.dateOfBirth}</span>
@@ -270,6 +304,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
                     onChange={handleChange}
                     disabled={isLoading}
                     placeholder="Create a password"
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
@@ -277,6 +312,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading}
                     aria-label={showPassword ? "Hide password" : "Show password"}
+                    tabIndex="-1"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -297,6 +333,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
                     onChange={handleChange}
                     disabled={isLoading}
                     placeholder="Re-enter your password"
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
@@ -304,6 +341,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     disabled={isLoading}
                     aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    tabIndex="-1"
                   >
                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -323,13 +361,13 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
             <button
               type="button"
               className="modal-btn modal-btn-secondary"
-              onClick={onClose}
+              onClick={() => !isLoading && onClose()}
               disabled={isLoading}
             >
               Cancel
             </button>
             <button
-              type="button"
+              type="submit"
               className="modal-btn modal-btn-primary"
               onClick={handleSubmit}
               disabled={isLoading}

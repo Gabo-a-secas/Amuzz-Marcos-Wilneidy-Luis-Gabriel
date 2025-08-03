@@ -11,6 +11,8 @@ import Layout from './pages/Layout';
 import Home from './pages/Home';
 import Mood from './pages/Mood';
 import Results from './pages/Results';
+import VerifyEmail from './pages/VerifyEmail';
+
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -18,6 +20,7 @@ const router = createBrowserRouter(
       <Route index element={<Home />} />
       <Route path="mood" element={<Mood />} />
       <Route path="results" element={<Results />} />
+      <Route path="verify-email" element={<VerifyEmail />} />
     </Route>
   )
 );
