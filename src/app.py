@@ -157,14 +157,8 @@ def login_user():
                 "requires_verification": True
             }), 403
 
-        token = create_access_token(
-            identity={
-                "id": user.id,
-                "email": user.email,
-                "username": user.username,
-                "full_name": user.full_name
-            }
-        )
+        token = create_access_token(identity=user.email)
+
         expires_in = int(
             app.config['JWT_ACCESS_TOKEN_EXPIRES'].total_seconds())
         return jsonify({
@@ -199,3 +193,18 @@ def protected():
 
 if __name__ == '__main__':
     app.run(debug=True, port=3001, host='0.0.0.0')
+
+
+@app.route('/api/test-token')
+def get_test_token():
+    # Buscá un usuario de prueba (o crealo antes)
+    user = db.session.execute(db.select(User)).scalar_one_or_none()
+    if not user:
+        return jsonify({"message": "No hay usuarios para test"}), 404
+    token = create_access_token(identity={
+        "id": user.id,
+        "email": user.email,
+        "username": user.username,
+        "full_name": user.full_name
+    })
+    return jsonify({"token": token}), 200

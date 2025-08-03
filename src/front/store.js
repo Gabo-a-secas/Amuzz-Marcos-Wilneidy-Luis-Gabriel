@@ -7,8 +7,8 @@ export const initialStore = () => {
     token: storedToken || null,
     isAuthenticated: !!storedToken,
     currentTrack: null,
-    isPlaying: false,       // ¿Está sonando?
-    isPlayerVisible: false, // ¿Está visible el reproductor?
+    isPlaying: false,
+    isPlayerVisible: false, 
     isPlayerMinimized: false
   };
 };
@@ -111,3 +111,23 @@ export default function storeReducer(state, action) {
   }
 }
 
+export async function getUserPlaylists(token) {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playlists`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudieron obtener las playlists");
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error("Error obteniendo playlists:", error);
+    return null;
+  }
+}
