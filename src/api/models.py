@@ -41,19 +41,23 @@ class User(db.Model):
         """Genera un token único para verificación de email"""
         self.verification_token = secrets.token_urlsafe(32)
         self.verification_token_expires = datetime.utcnow() + timedelta(hours=24)
-        db.session.commit()
+        
         return self.verification_token
-
+    
     def verify_email(self, token):
         """Verifica el email si el token es válido"""
-        if (self.verification_token == token and
+        try:
+            if (self.verification_token == token and
+                self.verification_token_expires and
                 self.verification_token_expires > datetime.utcnow()):
-            self.email_verified = True
-            self.verification_token = None
-            self.verification_token_expires = None
-            db.session.commit()
-            return True
-        return False
+                self.email_verified = True
+                self.verification_token = None
+                self.verification_token_expires = None
+                return True
+            return False
+        except Exception as e:
+            print(f"Error verificando email: {e}")
+            return False
 
 
 class Playlist(db.Model):

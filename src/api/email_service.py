@@ -1,29 +1,21 @@
 from flask_mail import Message
 from flask import current_app
-import secrets
-from datetime import datetime, timedelta
+import os
 
 def send_verification_email(user):
-    """Envía email de verificación al usuario"""
+    """Envía email de verificación SIN commit automático"""
     try:
-    
-        from flask import current_app
         mail = current_app.extensions['mail']
         
-    
-        user.verification_token = secrets.token_urlsafe(32)
-        user.verification_token_expires = datetime.utcnow() + timedelta(hours=24)
+        # Usar el token ya generado, NO generar uno nuevo
+        token = user.verification_token
+        if not token:
+            print("❌ No hay token generado")
+            return False
         
-        # Guardar en BD
-        from api.models import db
-        db.session.commit()
-        
-        # URL del frontend desde .env
-        import os
         frontend_url = os.getenv('FRONTEND_URL', 'https://legendary-eureka-975rxjgrgp6v3xjrr-3000.app.github.dev')
-        verification_url = f"{frontend_url.rstrip('/')}/verify-email?token={user.verification_token}"
+        verification_url = f"{frontend_url.rstrip('/')}/verify-email?token={token}"
         
-        # Crear mensaje
         msg = Message(
             subject='Verify your email - Amuzz',
             recipients=[user.email],
@@ -53,7 +45,6 @@ def send_verification_email(user):
         </div>
         """
         
-        # Enviar email
         mail.send(msg)
         print(f"✅ Email sent successfully to {user.email}")
         return True

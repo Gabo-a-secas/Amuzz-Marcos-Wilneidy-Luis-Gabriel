@@ -86,75 +86,41 @@ def get_users():
     return jsonify([user.serialize() for user in users]), 200
 
 
-@app.route('/api/register', methods=['POST', 'OPTIONS'])
-def register_user():
+@app.route('/api/verify-email/<token>', methods=['GET', 'OPTIONS'])
+def verify_email(token):
     if request.method == 'OPTIONS':
         return jsonify({}), 200
+    
     try:
-        data = request.get_json()
-        full_name = data.get("full_name")
-        username = data.get("username")
-        email = data.get("email")
-        date_of_birth = data.get("date_of_birth")
-        password = data.get("password")
-        confirm_password = data.get("confirm_password")
-        if not all([full_name, username, email, password, confirm_password]):
-            return jsonify({"message": "Todos los campos son obligatorios"}), 400
-        if password != confirm_password:
-            return jsonify({"message": "Las contraseñas no coinciden"}), 400
-        existing_user_email = db.session.execute(
-            db.select(User).filter_by(email=email)
+        print(f"🔍 Verificando token: {token}")
+        
+        user = db.session.execute(
+            db.select(User).filter_by(verification_token=token)
         ).scalar_one_or_none()
-        if existing_user_email:
-            return jsonify({"message": "Este correo ya está registrado"}), 409
-        existing_user_username = db.session.execute(
-            db.select(User).filter_by(username=username)
-        ).scalar_one_or_none()
-        if existing_user_username:
-            return jsonify({"message": "Este username ya está en uso"}), 409
-        hashed_password = generate_password_hash(password)
-        new_user = User(
-            full_name=full_name,
-            username=username,
-            email=email,
-            date_of_birth=datetime.strptime(
-                date_of_birth, '%Y-%m-%d').date() if date_of_birth else None,
-            password_hash=hashed_password,
-            email_verified=False
-        )
-        db.session.add(new_user)
-        db.session.commit()
-
-        from api.email_service import send_verification_email
-
-        email_sent = False
-        try:
-            email_sent = send_verification_email(new_user)
-            print(f"✅ Email enviado: {email_sent}")
-            print(f"📧 Email destinatario: {new_user.email}")
-            print(f"🔑 Token generado: {new_user.verification_token}")
-        except Exception as e:
-            print(f"❌ Error enviando email: {e}")
-
-        if email_sent:
+        
+        if not user:
+            return jsonify({"message": "Token de verificación inválido"}), 400
+        
+        if user.email_verified:
+            return jsonify({"message": "Email ya verificado anteriormente"}), 200
+        
+        if user.verify_email(token):
+            db.session.commit()  # ✅ Commit controlado aquí
+            print(f"✅ Email verificado: {user.email}")
             return jsonify({
-                "message": "Usuario registrado correctamente. Por favor verifica tu email.",
-                "email": new_user.email,
-                "requires_verification": True
-            }), 201
+                "message": "Email verificado exitosamente",
+                "email": user.email,
+                "email_verified": True  
+            }), 200
         else:
-            return jsonify({
-                "message": "Usuario registrado pero no pudimos enviar el email de verificación. Por favor intenta reenviar.",
-                "email": new_user.email,
-                "requires_verification": True
-            }), 201
-
-    except ValueError as e:
-        return jsonify({"message": f"Error en el formato de fecha: {str(e)}"}), 400
+            return jsonify({"message": "Token inválido o expirado"}), 400
+            
     except Exception as e:
         db.session.rollback()
-        print(f'Error durante el registro: {e}')
-        return jsonify({"message": "Ocurrió un error durante el registro"}), 500
+        print(f'❌ Error: {e}')
+        return jsonify({"message": "Error al verificar email"}), 500
+
+
 
 
 @app.route('/api/token', methods=['POST', 'OPTIONS'])
