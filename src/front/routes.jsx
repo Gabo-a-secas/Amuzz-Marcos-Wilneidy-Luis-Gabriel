@@ -18,6 +18,7 @@ export const router = createBrowserRouter(
         <Route index element={<Home />} />
         <Route path="playlists" element={<Playlists />} />
         {/* <Route path="mood" element={<Mood />} />  */}
+        <Route path="playlists" element={<Playlists />} />
         <Route path="results" element={<Results />} />
         <Route path="verify-email" element={<VerifyEmail />} /> 
         <Route path="test" element={<div>¡Test funcionando!</div>} />

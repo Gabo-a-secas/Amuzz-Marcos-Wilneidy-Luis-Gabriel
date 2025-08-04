@@ -27,6 +27,7 @@ CORS(app, resources={
         "origins": [
             "https://jubilant-space-guide-q7gqjvp746r5f96rj-3000.app.github.dev",
             "https://legendary-eureka-975rxjgrgp6v3xjrr-3000.app.github.dev",
+            "https://glorious-space-barnacle-69555wxx95p6crpj9-3000.app.github.dev",
             "http://localhost:5173"
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
