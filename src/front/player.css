@@ -5,7 +5,7 @@
   transform: translateX(-50%);
   width: 90%;
   max-width: 800px;
-  background: #00000033;;
+  background: #000000bd;;
   border-radius: 10px;
   border: 1px solid #ccc;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
@@ -36,7 +36,7 @@
   border: none;
   cursor: pointer;
   font-size: 14px;
-  color: #666;
+  color: #ffffff;
   transition: color 0.2s;
 }
 
@@ -78,11 +78,11 @@
   width: 40%;
 }
 
-.buttons {
+.main-buttons {
   display: flex;
   gap: 20px;
   font-size: 20px;
-  color: #000000;
+  color: #ffffff;
 }
 
 .icon {
@@ -91,7 +91,7 @@
 }
 
 .icon:hover {
-   color: #beddb8;;
+   color: #beddb8;
 }
 
 .progress-bar {
@@ -111,7 +111,54 @@
 
 .volume-bar {
   width: 100px;
-  color: #beddb8;
+  color: #ffffff;
 }
 
 
+.add-btn {
+  cursor: pointer;
+  transition: color 0.2s;
+  color: #ffffff;
+}
+
+.add-btn:hover {
+color: #beddb8;
+}
+
+.heart-btn{
+cursor: pointer;
+  transition: color 0.2s;
+  color: #ffffff;
+}
+
+.heart-btn:hover{
+  color: #beddb8;
+}
+
+.time-elapsed, .time-full{
+  color: #ffffff;
+}
+
+.progress-bar, .volume-bar {
+  accent-color: #ffffff;
+}
+
+.progress-bar:hover, .volume-bar:hover {
+ accent-color: #beddb8;
+}
+
+.progress-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px; /* Opcional: espaciado entre los elementos */
+}
+
+.time-elapsed, .time-full {
+  width: 50px; /* Ajusta según lo que necesites */
+  text-align: center;
+}
+
+.progress-bar {
+  flex: 1;
+}

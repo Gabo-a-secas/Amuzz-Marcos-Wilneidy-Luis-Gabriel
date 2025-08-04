@@ -8,9 +8,11 @@ import secrets
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash
+from flask_jwt_extended import jwt_required, get_jwt_identity, JWTManager  # ← AÑADIR ESTA LÍNEA
 from api.models import db, User, Playlist, PlaylistSong
 from api.utils import generate_sitemap, APIException
-from flask_jwt_extended import jwt_required, get_jwt_identity
+
+
 
 load_dotenv()
 
@@ -197,65 +199,112 @@ def get_music_by_mood(mood):
     except Exception as e:
         raise APIException(str(e), 500)
 
-# --- PLAYLISTS ---
+# --- PLAYLISTS --
+
+
+#CREACION DE PLAYLIST
+
 
 @api.route('/playlists', methods=['POST'])
 @jwt_required()
 def create_playlist():
-    current_user_data = get_jwt_identity()
-    user = db.session.execute(
-        db.select(User).filter_by(email=current_user_data['email'])
-    ).scalar_one_or_none()
+    try:
+        user_id_str = get_jwt_identity()  # RECIBE STRING !
+        user_id = int(user_id_str)       # CONVIERTE
+        
+        print(f"User ID from token: {user_id}")
+        print(f"Type of user_id: {type(user_id)}")
+        
+        user = db.session.get(User, user_id)
+        print(f"User found: {user}")
+        
+        if not user:
+            print("Usuario no encontrado en la base de datos")
+            return jsonify({"error": "Usuario no encontrado"}), 404
 
-    if not user:
-        return jsonify({"error": "Usuario no encontrado"}), 404
+        data = request.get_json()
+        name = data.get('name')
+        description = data.get('description', '')
 
-    data = request.get_json()
-    name = data.get('name')
-    description = data.get('description', '')
+        print(f"Datos recibidos - name: {name}, description: {description}")
 
-    if not name:
-        return jsonify({"error": "El nombre es obligatorio"}), 400
+        if not name:
+            print("Error: El nombre es obligatorio")
+            return jsonify({"error": "El nombre es obligatorio"}), 400
 
-    playlist = Playlist(
-        name=name,
-        description=description,
-        user_id=user.id
-    )
-    db.session.add(playlist)
-    db.session.commit()
+        playlist = Playlist(
+            name=name,
+            description=description,
+            user_id=user.id
+        )
+        
+        db.session.add(playlist)
+        db.session.commit()
+        
+        print(f"Playlist creada con ID: {playlist.id}")
 
-    return jsonify({
-        "message": "Playlist creada",
-        "id": playlist.id,
-        "name": playlist.name,
-        "description": playlist.description
-    }), 201
+        return jsonify({
+            "message": "Playlist creada",
+            "id": playlist.id,
+            "name": playlist.name,
+            "description": playlist.description
+        }), 201
+        
+    except Exception as e:
+        print(f"Error en create_playlist: {str(e)}")
+        print(f"Tipo de error: {type(e)}")
+        import traceback
+        traceback.print_exc()
+        db.session.rollback()  # Importante para operaciones de escritura
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+#OBTENER PLAYLISTS
+
 
 @api.route('/playlists', methods=['GET'])
 @jwt_required()
 def get_playlists():
-    current_user_data = get_jwt_identity()
-    user = db.session.execute(
-        db.select(User).filter_by(email=current_user_data['email'])
-    ).scalar_one_or_none()
+    try:
+        user_id_str = get_jwt_identity()  # RECIBE STRING !
+        user_id = int(user_id_str)       # CONVIERTE
+        
+        print(f"User ID from token: {user_id}")
+        print(f"Type of user_id: {type(user_id)}")
+        
+        user = db.session.get(User, user_id)
+        print(f"User found: {user}")
+        
+        if not user:
+            print("Usuario no encontrado en la base de datos")
+            return jsonify({"error": "Usuario no encontrado"}), 404
 
-    if not user:
-        return jsonify({"error": "Usuario no encontrado"}), 404
+        playlists = db.session.execute(
+            db.select(Playlist).filter_by(user_id=user.id)
+        ).scalars().all()
+        
+        print(f"Playlists encontradas: {len(playlists)}")
 
-    playlists = db.session.execute(
-        db.select(Playlist).filter_by(user_id=user.id)
-    ).scalars().all()
-    
-    serialized = [
-        {
-            "id": p.id,
-            "name": p.name,
-            "description": p.description,
-            "created_at": p.created_at.isoformat()
-        } for p in playlists
-    ]
-    return jsonify(serialized), 200
+        serialized = [
+            {
+                "id": p.id,
+                "name": p.name,
+                "description": p.description,
+                "created_at": p.created_at.isoformat()
+            } for p in playlists
+        ]
+
+        return jsonify(serialized), 200
+        
+    except Exception as e:
+        print(f"Error en get_playlists: {str(e)}")
+        print(f"Tipo de error: {type(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+
+#ELIMINAR PLAYLISTS
+
 
 @api.route('/playlists/<int:playlist_id>', methods=['DELETE'])
 @jwt_required()
@@ -278,6 +327,9 @@ def delete_playlist(playlist_id):
     db.session.delete(playlist)
     db.session.commit()
     return jsonify({"message": "Playlist eliminada"}), 200
+
+
+#AGREGAR CANCIONES A PLAYLIST
 
 @api.route('/playlists/<int:playlist_id>/songs', methods=['POST'])
 @jwt_required()
@@ -328,6 +380,8 @@ def add_song_to_playlist(playlist_id):
 
     return jsonify({"message": "Canción añadida a la playlist"}), 201
 
+#OBTENER CANCIONES DE PLAYLISTS???¿¿¿¿
+
 @api.route('/playlists/<int:playlist_id>/songs', methods=['GET'])
 @jwt_required()
 def get_songs_in_playlist(playlist_id):
@@ -353,6 +407,8 @@ def get_songs_in_playlist(playlist_id):
     songs_serialized = [s.serialize() for s in songs]
 
     return jsonify(songs_serialized), 200
+
+#ELIMINAR CANCION DE PLAYLISTS
 
 @api.route('/playlists/<int:playlist_id>/songs/<int:song_entry_id>', methods=['DELETE'])
 @jwt_required()

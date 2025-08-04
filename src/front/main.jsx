@@ -13,12 +13,14 @@ import Mood from './pages/Mood';
 import Results from './pages/Results';
 import VerifyEmail from './pages/VerifyEmail';
 
+import Playlists from './components/Playlists'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />} errorElement={<h1>No encontrado 😢</h1>}>
       <Route index element={<Home />} />
       <Route path="mood" element={<Mood />} />
+      <Route path="playlists" element={<Playlists />} />
       <Route path="results" element={<Results />} />
       <Route path="verify-email" element={<VerifyEmail />} />
     </Route>

@@ -13,12 +13,16 @@ gunicorn = "*"
 cloudinary = "*"
 typing-extensions = "*"
 psycopg2-binary = "*"
+requests = "*"
 flask = "*"
 flask-sqlalchemy = "*"
 flask-migrate = "*"
 flask-cors = "*"
 flask-jwt-extended = "*"
+
+=======
 flask-mail = "*"
+
 flask-swagger = "*"
 flask-admin = "*"
 python-dotenv = "*"
@@ -26,6 +30,8 @@ werkzeug = "*"
 sqlalchemy = "*"
 requests = "*"
 stripe = "*"
+sqlalchemy = "*"
+flask-mail = "*"
 
 [requires]
 python_version = "3.13"
