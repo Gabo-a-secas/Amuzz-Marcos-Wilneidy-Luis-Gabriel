@@ -19,10 +19,16 @@ flask-sqlalchemy = "*"
 flask-migrate = "*"
 flask-cors = "*"
 flask-jwt-extended = "*"
+
+=======
+flask-mail = "*"
+
 flask-swagger = "*"
 flask-admin = "*"
 python-dotenv = "*"
 werkzeug = "*"
+sqlalchemy = "*"
+requests = "*"
 stripe = "*"
 sqlalchemy = "*"
 flask-mail = "*"
