@@ -79,10 +79,10 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
       console.log('📡 Respuesta del login:', data);
 
       if (response.ok) {
-        const { token, user } = data;
+        const { access_token, user } = data;
 
-        localStorage.setItem('token', token);
-        dispatch({ type: 'LOGIN_SUCCESS', payload: { user, token } });
+        localStorage.setItem('token', access_token);
+        dispatch({ type: 'LOGIN_SUCCESS', payload: { user, access_token } });
 
         if (onLoginSuccess) {
           onLoginSuccess(data.user);

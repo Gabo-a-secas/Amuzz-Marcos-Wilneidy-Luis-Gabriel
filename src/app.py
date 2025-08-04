@@ -90,37 +90,35 @@ def get_users():
 def verify_email(token):
     if request.method == 'OPTIONS':
         return jsonify({}), 200
-    
+
     try:
         print(f"🔍 Verificando token: {token}")
-        
+
         user = db.session.execute(
             db.select(User).filter_by(verification_token=token)
         ).scalar_one_or_none()
-        
+
         if not user:
             return jsonify({"message": "Token de verificación inválido"}), 400
-        
+
         if user.email_verified:
             return jsonify({"message": "Email ya verificado anteriormente"}), 200
-        
+
         if user.verify_email(token):
             db.session.commit()  # ✅ Commit controlado aquí
             print(f"✅ Email verificado: {user.email}")
             return jsonify({
                 "message": "Email verificado exitosamente",
                 "email": user.email,
-                "email_verified": True  
+                "email_verified": True
             }), 200
         else:
             return jsonify({"message": "Token inválido o expirado"}), 400
-            
+
     except Exception as e:
         db.session.rollback()
         print(f'❌ Error: {e}')
         return jsonify({"message": "Error al verificar email"}), 500
-
-
 
 
 @app.route('/api/token', methods=['POST', 'OPTIONS'])
@@ -157,13 +155,13 @@ def login_user():
                 "requires_verification": True
             }), 403
 
-        token = create_access_token(identity=user.email)
+        token = create_access_token(identity=str(user.id))
 
         expires_in = int(
             app.config['JWT_ACCESS_TOKEN_EXPIRES'].total_seconds())
         return jsonify({
             "message": "Login exitoso",
-            "token": token,
+            "access_token": token,
             "token_type": "bearer",
             "expires_in": expires_in,
             "expires_at": (datetime.now(timezone.utc) + timedelta(seconds=expires_in)).isoformat(),
@@ -175,6 +173,7 @@ def login_user():
                 "email_verified": user.email_verified
             }
         }), 200
+
     except Exception as e:
         print(f'Error durante el login: {e}')
         return jsonify({"message": "Ocurrió un error durante el login"}), 500
@@ -195,16 +194,15 @@ if __name__ == '__main__':
     app.run(debug=True, port=3001, host='0.0.0.0')
 
 
-@app.route('/api/test-token')
-def get_test_token():
-    # Buscá un usuario de prueba (o crealo antes)
-    user = db.session.execute(db.select(User)).scalar_one_or_none()
-    if not user:
-        return jsonify({"message": "No hay usuarios para test"}), 404
-    token = create_access_token(identity={
-        "id": user.id,
-        "email": user.email,
-        "username": user.username,
-        "full_name": user.full_name
-    })
-    return jsonify({"token": token}), 200
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    return jsonify({"error": "Token expirado"}), 401
+
+@jwt.invalid_token_loader
+def invalid_token_callback(error):
+    print(f"Token inválido: {error}")
+    return jsonify({"error": "Token inválido"}), 422
+
+@jwt.unauthorized_loader
+def missing_authorization_callback(error):
+    return jsonify({"error": "Se requiere token de autorización"}), 401
