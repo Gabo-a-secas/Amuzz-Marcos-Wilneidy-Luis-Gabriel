@@ -1,11 +1,15 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import ScrollToTop from "../components/ScrollToTop";
 import Navbar from "../components/Navbar";
 import PlayerWrapper from "../components/PlayerWrapper";
 
 const Layout = () => {
+  const location = useLocation();
+
+  const hideNavbar = location.pathname.startsWith("/results");
+
   return (
-    <ScrollToTop>
+     <ScrollToTop>
       <div className="min-h-screen flex flex-col relative">
         {/* Z-index 10 to ensure navbar goes above outlet content */}
         <Navbar />

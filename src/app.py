@@ -16,10 +16,25 @@ from flask_mail import Mail, Message
 import secrets
 from dotenv import load_dotenv
 import os
+from flask_cors import CORS
 
 load_dotenv()
 
 app = Flask(__name__)
+
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "https://jubilant-space-guide-q7gqjvp746r5f96rj-3000.app.github.dev",
+            "https://legendary-eureka-975rxjgrgp6v3xjrr-3000.app.github.dev",
+            "http://localhost:5173"
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True,
+        "expose_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
 app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 2525))
@@ -36,7 +51,7 @@ mail = Mail(app)
 CORS(app, resources={
     r"/*": {
         "origins": [
-            "https://legendary-eureka-975rxjgrgp6v3xjrr-3000.app.github.dev",
+            "https://upgraded-couscous-pjwx7g97pjr9f97qj-3000.app.github.dev",
             "https://*.github.dev",
             "http://localhost:*",
             "http://localhost:5173"
