@@ -7,8 +7,8 @@ export const initialStore = () => {
     token: storedToken || null,
     isAuthenticated: !!storedToken,
     currentTrack: null,
-    isPlaying: false,       // ¿Está sonando?
-    isPlayerVisible: false, // ¿Está visible el reproductor?
+    isPlaying: false,
+    isPlayerVisible: false, 
     isPlayerMinimized: false
   };
 };
@@ -17,12 +17,13 @@ export default function storeReducer(state, action) {
   switch (action.type) {
     case "LOGIN_SUCCESS":
       localStorage.setItem('user', JSON.stringify(action.payload.user));
-      localStorage.setItem('token', action.payload.token);
+      localStorage.setItem('token', action.payload.access_token);
+
 
       return {
         ...state,
         user: action.payload.user,
-        token: action.payload.token,
+        token: action.payload.access_token,
         isAuthenticated: true,
       };
 
@@ -111,3 +112,58 @@ export default function storeReducer(state, action) {
   }
 }
 
+
+export async function createUserPlaylist(token, name) {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playlists`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ name })
+    });
+
+    console.log("➡️ Enviando nueva playlist:", name);
+    console.log("Token que se está enviando:", token);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "No se pudo crear la playlist");
+    }
+
+    const data = await response.json();
+    console.log("✅ Playlist creada correctamente:", data);
+    return data;
+
+  } catch (error) {
+    console.error("❌ Error creando playlist:", error);
+    return null;
+  }
+}
+
+
+
+export async function getUserPlaylists(token) {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playlists`, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    console.log("Token que se está enviando:", token);
+
+    if (!response.ok) {
+      throw new Error("No se pudieron obtener las playlists");
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    console.error("Error obteniendo playlists:", error);
+    return null;
+  }
+}
