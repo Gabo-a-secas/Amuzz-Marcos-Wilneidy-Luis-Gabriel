@@ -113,7 +113,7 @@ const material = new THREE.ShaderMaterial({
 });
 
 const mesh = new THREE.Mesh(geometry, material);
-mesh.position.set(-0.2, 1.29, 0);
+mesh.position.set(-0.2, 1.99, 0);
 scene.add(mesh);
 
 const waterGeo = new THREE.PlaneGeometry(6, 6);

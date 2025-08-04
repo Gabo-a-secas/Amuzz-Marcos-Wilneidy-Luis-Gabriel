@@ -16,7 +16,7 @@ export const router = createBrowserRouter(
       <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
 
         <Route index element={<Home />} />
-        <Route path="mood" element={<Mood />} />
+        {/* <Route path="mood" element={<Mood />} />  */}
         <Route path="playlists" element={<Playlists />} />
         <Route path="results" element={<Results />} />
         <Route path="verify-email" element={<VerifyEmail />} /> 
@@ -25,3 +25,4 @@ export const router = createBrowserRouter(
       </Route>
     )
 );
+
