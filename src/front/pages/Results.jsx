@@ -1,8 +1,13 @@
 import { useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePlayer } from "../hooks/PlayerContext";
-import { FaPlay } from "react-icons/fa";
+import { FaPlay, FaPlus } from "react-icons/fa";
 import "../results.css";
+import { addSongToPlaylist, getUserPlaylists, createUserPlaylist } from "../store";
+import NewPlaylistModal from "../components/NewPlaylistModal";
+import "../NewPlaylistModal.css";
+import { createPortal } from "react-dom";
+import useGlobalReducer from "../hooks/useGlobalReducer";
 
 const moodVideos = {
   happy: "/videos/feliz.mp4",
@@ -13,7 +18,6 @@ const moodVideos = {
   latin: "/videos/latino.mp4",
 };
 
-
 const Results = () => {
   const location = useLocation();
   const moodObj = location.state?.moodObj;
@@ -23,6 +27,21 @@ const Results = () => {
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
   const { openPlayer } = usePlayer();
+
+  const { store, refreshPlaylists } = useGlobalReducer();
+  const { playlists } = store;
+  const [selectedTrack, setSelectedTrack] = useState(null);
+  const [showPlaylistMenuId, setShowPlaylistMenuId] = useState(null);
+  const [showNewPlaylistModal, setShowNewPlaylistModal] = useState(false);
+
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    refreshPlaylists();
+  }, []);
 
   useEffect(() => {
     if (!mood) return;
@@ -38,8 +57,9 @@ const Results = () => {
       });
   }, [mood]);
 
+
   const handleEscuchar = (track) => {
-    openPlayer({
+    const trackData = {
       id: track.id,
       name: track.name,
       artist: track.artist,
@@ -51,7 +71,25 @@ const Results = () => {
       release_date: track.release_date,
       waveform: track.waveform,
       genres: track.genres,
-    });
+    };
+
+
+    const playlistData = tracks.map(t => ({
+      id: t.id,
+      name: t.name,
+      artist: t.artist,
+      audio: t.audio,
+      image: t.image,
+      duration: t.duration,
+      genre: t.genres,
+      album_name: t.album_name,
+      release_date: t.release_date,
+      waveform: t.waveform,
+      genres: t.genres,
+    }));
+
+
+    openPlayer(trackData, playlistData);
   };
 
   const formatDuration = (seconds) => {
@@ -59,6 +97,49 @@ const Results = () => {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const handleAddToPlaylist = async (playlistId, track) => {
+    const token = localStorage.getItem("token");
+    const songData = {
+      song_id: track.id,
+      name: track.name,
+      artist: track.artist,
+      audio_url: track.audio,
+      image_url: track.image,
+    };
+
+    const res = await addSongToPlaylist(playlistId, songData, token);
+    if (res.ok) {
+      alert("Canción agregada");
+      refreshPlaylists();
+      setShowPlaylistMenuId(null);
+    } else {
+      alert("Error al agregar canción");
+    }
+
+    setShowPlaylistMenuId(null);
+  };
+
+  const togglePlaylistMenu = (trackId) => {
+    setShowPlaylistMenuId(prev => (prev === trackId ? null : trackId));
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setShowPlaylistMenuId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const videoURL = moodVideos[mood] || "/videos/feliz.mp4";
 
@@ -77,8 +158,9 @@ const Results = () => {
           <p className="results-empty">No encontramos música para ese mood.</p>
         ) : (
           <div className="results-list">
-            {tracks.map((track) => (
+            {tracks.map((track, index) => (
               <div key={track.id} className="music-card">
+                <div className="track-number">{index + 1}</div>
                 <img
                   src={track.image || "/music-icon.png"}
                   alt={track.name}
@@ -119,11 +201,80 @@ const Results = () => {
                 })()}
 
                 <FaPlay onClick={() => handleEscuchar(track)} className="icon" />
+
+                <div className="plus-container">
+                  <button className="plus-btn" onClick={() => togglePlaylistMenu(track.id)}>+</button>
+                  {showPlaylistMenuId === track.id && (
+                    <div className="playlist-dropdown" ref={dropdownRef}>
+                      {Array.isArray(playlists) && playlists.map((playlist) => (
+                        <button
+                          key={playlist.id}
+                          className="playlist-option"
+                          onClick={() => handleAddToPlaylist(playlist.id, track)}
+                          tabIndex={0}
+                        >
+                          {playlist.name}
+                        </button>
+                      ))}
+                      <button
+                        className="playlist-option create-new-playlist"
+                        onClick={() => {
+                          setSelectedTrack(track);
+                          setShowPlaylistMenuId(null);
+                          setShowNewPlaylistModal(true);
+                        }}
+                        tabIndex={0}
+                      >
+                        + Crear nueva playlist
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {showNewPlaylistModal &&
+        createPortal(
+          <NewPlaylistModal
+            isOpen={showNewPlaylistModal}
+            onClose={() => setShowNewPlaylistModal(false)}
+            onCreate={async (name) => {
+              const token = localStorage.getItem("token");
+              const result = await createUserPlaylist(token, name);
+
+              if (result) {
+                console.log("Playlist creada desde botón +:", result);
+                refreshPlaylists();
+                setShowNewPlaylistModal(false);
+
+                if (selectedTrack) {
+                  const songData = {
+                    song_id: selectedTrack.id,
+                    name: selectedTrack.name,
+                    artist: selectedTrack.artist,
+                    audio_url: selectedTrack.audio,
+                    image_url: selectedTrack.image,
+                  };
+
+                  const addRes = await addSongToPlaylist(result.id, songData, token);
+                  if (addRes.ok) {
+                    alert("🎶 Playlist creada y canción agregada con éxito!");
+                    setSelectedTrack(null);
+                  } else {
+                    alert("Playlist creada, pero error al añadir la canción.");
+                  }
+                }
+              } else {
+                alert("No se pudo crear la playlist.");
+              }
+            }}
+          />,
+          document.body
+        )
+      }
     </div>
   );
 };

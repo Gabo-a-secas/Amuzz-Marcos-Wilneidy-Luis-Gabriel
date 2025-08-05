@@ -101,3 +101,115 @@
 .wave-bar-mini:hover {
   background-color: #beddb8;
 }
+
+.plus-container {
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+.plus-btn {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: white;
+  cursor: pointer;
+}
+
+.playlist-dropdown {
+  position: absolute;
+  top: 100%; 
+  right: 0;
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  padding: 8px 0;
+  min-width: 200px;
+  z-index: 1000;
+  animation: dropdownFadeIn 0.15s ease forwards;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.playlist-option {
+  background: transparent;
+  border: none;
+  width: 100%;
+  padding: 10px 16px;
+  color: #eee;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  user-select: none;
+}
+
+
+.playlist-option:hover,
+.playlist-option:focus {
+  background-color: #1db954;
+  color: #fff;
+  outline: none;
+}
+
+.playlist-option.create-new-playlist {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+  color: #1db954;
+  padding-top: 12px;
+}
+
+
+.music-card {
+  position: relative;
+  padding-left: 45px; 
+}
+
+
+.track-number {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(190, 221, 184, 0.8);
+  color: #000;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8em;
+  font-weight: bold;
+  z-index: 2;
+  transition: all 0.2s ease;
+}
+
+
+.track-number:hover {
+  background: rgba(190, 221, 184, 1);
+  transform: translateY(-50%) scale(1.1);
+}
+
+
+@media (max-width: 768px) {
+  .music-card {
+    padding-left: 35px;
+  }
+  
+  .track-number {
+    width: 20px;
+    height: 20px;
+    font-size: 0.7em;
+    left: 8px;
+  }
+}

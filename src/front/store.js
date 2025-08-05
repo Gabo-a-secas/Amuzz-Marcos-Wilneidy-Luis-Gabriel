@@ -7,6 +7,8 @@ export const initialStore = () => {
     token: storedToken || null,
     isAuthenticated: !!storedToken,
     currentTrack: null,
+    playlists: [],
+    selectedPlaylistId: null,
     isPlaying: false,
     isPlayerVisible: false, 
     isPlayerMinimized: false
@@ -16,9 +18,8 @@ export const initialStore = () => {
 export default function storeReducer(state, action) {
   switch (action.type) {
     case "LOGIN_SUCCESS":
-      localStorage.setItem('user', JSON.stringify(action.payload.user));
-      localStorage.setItem('token', action.payload.access_token);
-
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
+      localStorage.setItem("token", action.payload.access_token);
 
       return {
         ...state,
@@ -49,10 +50,21 @@ export default function storeReducer(state, action) {
         isPlayerVisible: true,
         isPlayerMinimized: false,
       };
+    case "SET_PLAYLISTS":
+      return {
+        ...state,
+        playlists: action.payload,
+      };
 
+      case "SET_SELECTED_PLAYLIST":
+  return {
+    ...state,
+    selectedPlaylistId: action.payload,
+  };
+  
     case "LOGOUT":
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
       return {
         ...state,
         user: null,
@@ -61,7 +73,7 @@ export default function storeReducer(state, action) {
         currentTrack: null,
       };
 
-      case "STOP_TRACK":
+    case "STOP_TRACK":
       return {
         ...state,
         currentTrack: null,
@@ -105,7 +117,6 @@ export default function storeReducer(state, action) {
         ...state,
         isPlayerVisible: !state.isPlayerVisible,
       };
-
 
     default:
       return state;
@@ -165,5 +176,25 @@ export async function getUserPlaylists(token) {
   } catch (error) {
     console.error("Error obteniendo playlists:", error);
     return null;
+  }
+}
+
+
+export async function addSongToPlaylist(playlistId, songData, token) {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playlists/${playlistId}/songs`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(songData),
+    });
+
+    const result = await response.json();
+    return { ok: response.ok, result };
+  } catch (error) {
+    console.error("Error al agregar canción:", error);
+    return { ok: false, result: null };
   }
 }

@@ -1,14 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import LoginModal from "./LoginModal";
 import RegisterModal from "./RegisterModal";
 import PremiumButton from "../components/PremiumButton";
+import { getUserPlaylists } from "../store";
+import PlaylistViewModal from "./PlaylistViewModal";
+import useGlobalReducer from "../hooks/useGlobalReducer";
+
 
 const Navbar = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [loggedUser, setLoggedUser] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loadingPlaylists, setLoadingPlaylists] = useState(true);
+  const { store, dispatch } = useGlobalReducer();
+
+  const playlists = store.playlists;
+
   const location = useLocation();
 
   const isHomePage = location.pathname === '/';
@@ -41,6 +52,35 @@ const Navbar = () => {
 
   const shouldShowSidebar = !loggedUser || isOpen;
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token || !loggedUser) return;
+
+    const fetchPlaylists = async () => {
+      setLoadingPlaylists(true);
+      const data = await getUserPlaylists(token);
+      if (data) {
+        dispatch({ type: "SET_PLAYLISTS", payload: data });
+      }
+      setLoadingPlaylists(false);
+    };
+
+    fetchPlaylists();
+  }, [loggedUser]);
+
+  const openPlaylistModal = (playlistId) => {
+    setSelectedPlaylistId(playlistId);
+    setIsModalOpen(true);
+    dispatch({ type: "SET_SELECTED_PLAYLIST", payload: playlistId });
+  };
+
+  const closePlaylistModal = () => {
+    setIsModalOpen(false);
+    setSelectedPlaylistId(null);
+  };
+
+
+
   return (
     <>
       <button className="navbar-toggle" onClick={toggleNavbar}>
@@ -55,6 +95,8 @@ const Navbar = () => {
               <h2 className="navbar-amuzz">Amuzz</h2>
             </Link>
           </div>
+
+
 
           <ul className="navbar-nav">
             <hr className="navbar-divider" />
@@ -83,6 +125,28 @@ const Navbar = () => {
             {loggedUser && (
               <>
                 <p className="navbar-username">Hola, {loggedUser.username}!</p>
+                <li className="navbar-nav-item">
+                  <details className="navbar-dropdown">
+                    <summary className="navbar-btn navbar-btn-outline">Mis Playlists</summary>
+                    <ul className="navbar-dropdown-list">
+                      {loadingPlaylists && <li className="navbar-dropdown-item">Cargando...</li>}
+                      {!loadingPlaylists && playlists.length === 0 && (
+                        <li className="navbar-dropdown-item">No tienes playlists</li>
+                      )}
+                      {!loadingPlaylists &&
+                        playlists.map((playlist) => (
+                          <li key={playlist.id} className="navbar-dropdown-item">
+                            <label
+                              onClick={() => openPlaylistModal(playlist.id)}
+                              className="navbar-dropdown-link"
+                            >
+                              {playlist.name}
+                            </label>
+                          </li>
+                        ))}
+                    </ul>
+                  </details>
+                </li>
                 <li className="navbar-nav-item">
                   <Link
                     to="/results"
@@ -163,6 +227,13 @@ const Navbar = () => {
           />
         </>
       )}
+
+      <PlaylistViewModal
+        isOpen={isModalOpen}
+        onClose={closePlaylistModal}
+        playlistId={selectedPlaylistId}
+      />
+
     </>
   );
 };

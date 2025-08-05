@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaTimes, FaPlusCircle } from "react-icons/fa";
-import "../NewPlaylistModal.css"; // Asegúrate de que esté enlazado el CSS
+import "../NewPlaylistModal.css";
 
 const NewPlaylistModal = ({ isOpen, onClose, onCreate }) => {
   const [playlistName, setPlaylistName] = useState("");

@@ -583,3 +583,31 @@
 .verification-close-btn:hover {
   opacity: 1;
 }
+
+.navbar-dropdown summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.5rem;
+  font-weight: bold;
+  user-select: none;
+}
+
+.navbar-dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 1rem;
+}
+
+.navbar-dropdown-item {
+  margin: 0.3rem 0;
+}
+
+.navbar-dropdown-link {
+  color: white;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+.navbar-dropdown-link:hover {
+  color: #1db954;
+}
