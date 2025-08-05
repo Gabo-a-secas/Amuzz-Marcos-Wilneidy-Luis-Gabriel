@@ -55,6 +55,7 @@
 	},
 	"dependencies": {
 		"@stripe/stripe-js": "^7.6.1",
+		"animate.css": "^4.1.1",
 		"bootstrap": "^5.3.7",
 		"icons": "^1.0.0",
 		"lucide-react": "^0.525.0",

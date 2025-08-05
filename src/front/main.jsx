@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import './navBar-Modal.css';
 import './player.css';
+import 'animate.css';
 import { RouterProvider } from 'react-router-dom';
 import { StoreProvider } from './hooks/useGlobalReducer';
 import { PlayerProvider } from './hooks/PlayerContext'
@@ -17,7 +18,7 @@ import Playlists from './components/Playlists'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<Layout />} errorElement={<h1>No encontrado 😢</h1>}>
+    <Route path="/" element={<Layout />} errorElement={<h1>Not found 😢</h1>}>
       <Route index element={<Home />} />
       <Route path="mood" element={<Mood />} />
       <Route path="playlists" element={<Playlists />} />
