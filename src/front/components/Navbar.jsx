@@ -153,6 +153,14 @@ const Navbar = () => {
           <div className="navbar-premium-button">
             <PremiumButton />
           </div>
+          <div className="navbar-social-icons">
+            <a href="https://x.com/AmuzzApp" target="_blank" rel="noopener noreferrer" aria-label="X">
+              <i className="fab fa-x-twitter"></i>
+            </a>
+            <a href="https://www.instagram.com/amuzz.app/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <i className="fab fa-instagram"></i>
+            </a>
+          </div>
         </nav>
       )}
 

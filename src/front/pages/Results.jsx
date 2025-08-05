@@ -63,7 +63,7 @@ const Results = () => {
   const videoURL = moodVideos[mood] || "/videos/feliz.mp4";
 
   return (
-    <div className="results-container">
+    <div className={`results-container ${mood}`}>
       <video autoPlay loop muted playsInline className="background-video" key={videoURL}>
         <source src={videoURL} type="video/mp4" />
       </video>

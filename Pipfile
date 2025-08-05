@@ -21,11 +21,10 @@ flask-jwt-extended = "*"
 flask-mail = "*"
 flask-swagger = "*"
 flask-admin = "*"
-requests = "*"
 python-dotenv = "*"
 werkzeug = "*"
-sqlalchemy = "*"
 stripe = "*"
+sqlalchemy = "*"
 
 [requires]
 python_version = "3.13"
