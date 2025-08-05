@@ -69,12 +69,12 @@ const Results = () => {
       </video>
 
       <div className="content-overlay">
-        <h2 className="results-title">Para este mood te sugiero:</h2>
+        <h2 className="results-title">For this mood we may suggest</h2>
 
         {loading ? (
-          <p className="results-loading">Cargando música...</p>
+          <p className="results-loading">Loading music for you...</p>
         ) : tracks.length === 0 ? (
-          <p className="results-empty">No encontramos música para ese mood.</p>
+          <p className="results-empty">Not found.</p>
         ) : (
           <div className="results-list">
             {tracks.map((track) => (

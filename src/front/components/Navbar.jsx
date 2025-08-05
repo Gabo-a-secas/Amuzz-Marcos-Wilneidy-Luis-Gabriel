@@ -82,14 +82,14 @@ const Navbar = () => {
 
             {loggedUser && (
               <>
-                <p className="navbar-username">Hola, {loggedUser.username}!</p>
+                <p className="navbar-username">Hey, {loggedUser.username}!</p>
                 <li className="navbar-nav-item">
                   <Link
                     to="/results"
                     state={{ moodObj: { mood: 'happy', label: 'Feliz' } }}
                     className="navbar-btn navbar-btn-outline"
                   >
-                    Feliz
+                    Joyride
                   </Link>
                 </li>
                 <li className="navbar-nav-item">
@@ -98,7 +98,7 @@ const Navbar = () => {
                     state={{ moodObj: { mood: 'sad', label: 'Triste' } }}
                     className="navbar-btn navbar-btn-outline"
                   >
-                    Triste
+                    Lo-fi
                   </Link>
                 </li>
                 <li className="navbar-nav-item">
@@ -107,7 +107,7 @@ const Navbar = () => {
                     state={{ moodObj: { mood: 'anxiety', label: 'Ansioso' } }}
                     className="navbar-btn navbar-btn-outline"
                   >
-                    Ansioso
+                    On Edge
                   </Link>
                 </li>
                 <li className="navbar-nav-item">
@@ -116,7 +116,7 @@ const Navbar = () => {
                     state={{ moodObj: { mood: 'party', label: 'Fiesta' } }}
                     className="navbar-btn navbar-btn-outline"
                   >
-                    Fiesta
+                    Groove
                   </Link>
                 </li>
                 <li className="navbar-nav-item">
@@ -125,7 +125,7 @@ const Navbar = () => {
                     state={{ moodObj: { mood: 'relax', label: 'Relajado' } }}
                     className="navbar-btn navbar-btn-outline"
                   >
-                    Relajado
+                    Stay Mellow
                   </Link>
                 </li>
                 <li className="navbar-nav-item">
@@ -134,7 +134,16 @@ const Navbar = () => {
                     state={{ moodObj: { mood: 'latin', label: 'Latino' } }}
                     className="navbar-btn navbar-btn-outline"
                   >
-                    Latino
+                    Son Latino
+                  </Link>
+                </li>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'random', label: 'Random' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Shuffle
                   </Link>
                 </li>
               </>
