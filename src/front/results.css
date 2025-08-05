@@ -40,6 +40,125 @@
   animation: fadeIn 0.6s ease-in-out;
 }
 
+.music-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.music-card::before {
+  pointer-events: none;
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  padding: 2px;
+  background-size: 600% 600%;
+  z-index: 1;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: destination-out;
+  opacity: 0; 
+  transition: opacity 0.3s ease;
+}
+
+.music-card:hover::before {
+  opacity: 1; 
+  animation: borderFlow 3s linear infinite;
+}
+
+@keyframes borderFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulseWave {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(1.5); }
+}
+
+
+.happy .music-card:hover,
+.energic .music-card:hover,
+.random .music-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88;
+}
+.happy .music-card:hover .wave-bar-mini,
+.energic .music-card:hover .wave-bar-mini,
+.random .music-card:hover .wave-bar-mini {
+  background-color: #aaffc3;
+  animation: pulseWave 0.5s infinite alternate;
+}
+.happy .music-card::before,
+.energic .music-card::before,
+.random .music-card::before {
+  background: linear-gradient(270deg, #00ff88, #aaffc3, #00ff88);
+}
+
+.sad .music-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 20px #00b3ff, 0 0 40px #00b3ff;
+}
+.sad .music-card:hover .wave-bar-mini {
+  background-color: #66d9ff;
+  animation: pulseWave 0.5s infinite alternate;
+}
+.sad .music-card::before {
+  background: linear-gradient(270deg, #00b3ff, #66d9ff, #00b3ff);
+}
+
+.anxiety .music-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 20px #ffcc00, 0 0 40px #ffcc00;
+}
+.anxiety .music-card:hover .wave-bar-mini {
+  background-color: #ffee99;
+  animation: pulseWave 0.5s infinite alternate;
+}
+.anxiety .music-card::before {
+  background: linear-gradient(270deg, #ffcc00, #ffee99, #ffcc00);
+}
+
+.relax .music-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 20px #6a5acd, 0 0 40px #6a5acd;
+}
+.relax .music-card:hover .wave-bar-mini {
+  background-color: #b0a7ff;
+  animation: pulseWave 0.5s infinite alternate;
+}
+.relax .music-card::before {
+  background: linear-gradient(270deg, #6a5acd, #b0a7ff, #6a5acd);
+}
+
+.party .music-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff;
+}
+.party .music-card:hover .wave-bar-mini {
+  background-color: #ff99ff;
+  animation: pulseWave 0.5s infinite alternate;
+}
+.party .music-card::before {
+  background: linear-gradient(270deg, #ff00ff, #ff99ff, #ff00ff);
+}
+
+.latin .music-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 20px #ff4500, 0 0 40px #ff4500;
+}
+.latin .music-card:hover .wave-bar-mini {
+  background-color: #ffb366;
+  animation: pulseWave 0.5s infinite alternate;
+}
+.latin .music-card::before {
+  background: linear-gradient(270deg, #ff4500, #ffb366, #ff4500);
+}
+
+
+
+
 .music-icon {
   width: 60px;
   height: 60px;
@@ -213,3 +332,33 @@
     left: 8px;
   }
 }
+
+
+.music-card .icon {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  padding: 14px;
+  font-size: 40px; 
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  color: white; 
+}
+
+
+.music-card .icon:hover {
+  transform: scale(1.2) rotate(5deg);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+}
+
+
+.happy .music-card .icon,
+.energic .music-card .icon,
+.random .music-card .icon { color: #00ff88; }
+
+.sad .music-card .icon { color: #00b3ff; }
+.anxiety .music-card .icon { color: #ffcc00; }
+.relax .music-card .icon { color: #6a5acd; }
+.party .music-card .icon { color: #ff00ff; }
+.latin .music-card .icon { color: #ff4500; }
+
