@@ -25,9 +25,7 @@ app = Flask(__name__)
 CORS(app, resources={
     r"/api/*": {
         "origins": [
-            "https://jubilant-space-guide-q7gqjvp746r5f96rj-3000.app.github.dev",
             "https://legendary-eureka-975rxjgrgp6v3xjrr-3000.app.github.dev",
-            "https://glorious-space-barnacle-69555wxx95p6crpj9-3000.app.github.dev",
             "http://localhost:5173"
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -52,7 +50,7 @@ mail = Mail(app)
 CORS(app, resources={
     r"/*": {
         "origins": [
-            "https://glorious-space-barnacle-69555wxx95p6crpj9-3000.app.github.dev",
+            "https://legendary-eureka-975rxjgrgp6v3xjrr-3000.app.github.dev",
             "https://*.github.dev",
             "http://localhost:*",
             "http://localhost:5173"
@@ -121,7 +119,7 @@ def verify_email(token):
             return jsonify({"message": "Email ya verificado anteriormente"}), 200
 
         if user.verify_email(token):
-            db.session.commit()  # ✅ Commit controlado aquí
+            db.session.commit()
             print(f"✅ Email verificado: {user.email}")
             return jsonify({
                 "message": "Email verificado exitosamente",

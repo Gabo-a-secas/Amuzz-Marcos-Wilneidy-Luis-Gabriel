@@ -19,7 +19,6 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     date_of_birth = db.Column(db.Date, nullable=True)
     password_hash = db.Column(db.String(200), nullable=False)
-    # verificación de email
     email_verified = db.Column(db.Boolean, default=False, nullable=False)
     verification_token = db.Column(db.String(100), unique=True, nullable=True)
     verification_token_expires = db.Column(db.DateTime, nullable=True)

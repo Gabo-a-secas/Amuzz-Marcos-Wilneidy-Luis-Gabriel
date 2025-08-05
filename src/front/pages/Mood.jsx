@@ -8,7 +8,6 @@ const moods = [
   { label: "Relajado", genre: "jazz", mood: "relax" },
   { label: "Fiesta", genre: "electronic", mood: "party" },
   { label: "Latin", genre: "latina", mood: "latin" },
-  { label: "Random", genre: "", mood: "" },
 ];
 
 const Mood = () => {

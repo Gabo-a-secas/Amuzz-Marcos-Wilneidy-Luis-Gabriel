@@ -16,7 +16,6 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  // ESTADOS PARA VERIFICACIÓN
   const [needsVerification, setNeedsVerification] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
 
@@ -33,7 +32,6 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
     
-    // Resetear estado de verificación cuando cambie el email
     if (name === 'email' && needsVerification) {
       setNeedsVerification(false);
       setUnverifiedEmail('');
@@ -89,13 +87,11 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
         }
 
         console.log('✅ Login exitoso para:', user.email);
-        // Mejor UX: mensaje de éxito sin alert
         setFormData({ email: '', password: '' });
         onClose();
       } else {
         console.log('❌ Error de login:', response.status, data);
         
-        // MANEJAR CASO DE EMAIL NO VERIFICADO
         if (response.status === 403 && data.requires_verification) {
           console.log('📧 Email no verificado, mostrando banner');
           setNeedsVerification(true);
@@ -140,28 +136,23 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
     }
   };
 
-  // FUNCIÓN PARA MANEJAR EL CIERRE Y LIMPIAR ESTADOS
   const handleClose = () => {
     setNeedsVerification(false);
     setUnverifiedEmail('');
     setErrors({});
-    setFormData({ email: '', password: '' }); // Limpiar formulario también
+    setFormData({ email: '', password: '' }); 
     onClose();
   };
 
-  // CALLBACK PARA CUANDO SE REENVÍA EMAIL
   const handleResendEmail = (success) => {
     if (success) {
       console.log('📧 Email de verificación reenviado');
-      // Opcionalmente podrías mostrar un mensaje de éxito
     }
   };
 
-  // CALLBACK PARA CERRAR BANNER DE VERIFICACIÓN
   const handleCloseBanner = () => {
     setNeedsVerification(false);
     setUnverifiedEmail('');
-    // Mantener el error general para que el usuario sepa por qué no pudo hacer login
   };
 
   return (
@@ -180,7 +171,6 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
           </div>
 
           <div className="modal-body">
-            {/* MOSTRAR BANNER DE VERIFICACIÓN SI ES NECESARIO */}
             {needsVerification && unverifiedEmail && (
               <EmailVerificationBanner 
                 email={unverifiedEmail}
@@ -244,7 +234,6 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
                   className="form-link"
                   onClick={(e) => {
                     e.preventDefault();
-                    // TODO: Implementar recuperación de contraseña
                     alert('Forgot password functionality coming soon!');
                   }}
                 >
