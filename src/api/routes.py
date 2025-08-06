@@ -209,8 +209,8 @@ def get_music_by_mood(mood):
 @jwt_required()
 def create_playlist():
     try:
-        user_id_str = get_jwt_identity()  # RECIBE STRING !
-        user_id = int(user_id_str)       # CONVIERTE
+        user_id_str = get_jwt_identity()  
+        user_id = int(user_id_str)       
         
         print(f"User ID from token: {user_id}")
         print(f"Type of user_id: {type(user_id)}")
@@ -255,7 +255,7 @@ def create_playlist():
         print(f"Tipo de error: {type(e)}")
         import traceback
         traceback.print_exc()
-        db.session.rollback()  # Importante para operaciones de escritura
+        db.session.rollback() 
         return jsonify({"error": "Error interno del servidor"}), 500
 
 #OBTENER PLAYLISTS
@@ -265,8 +265,8 @@ def create_playlist():
 @jwt_required()
 def get_playlists():
     try:
-        user_id_str = get_jwt_identity()  # RECIBE STRING !
-        user_id = int(user_id_str)       # CONVIERTE
+        user_id_str = get_jwt_identity()  
+        user_id = int(user_id_str)     
         
         print(f"User ID from token: {user_id}")
         print(f"Type of user_id: {type(user_id)}")
@@ -309,133 +309,183 @@ def get_playlists():
 @api.route('/playlists/<int:playlist_id>', methods=['DELETE'])
 @jwt_required()
 def delete_playlist(playlist_id):
-    current_user_data = get_jwt_identity()
-    user = db.session.execute(
-        db.select(User).filter_by(email=current_user_data['email'])
-    ).scalar_one_or_none()
+    try:
+        
+        user_id_str = get_jwt_identity()
+        user_id = int(user_id_str)
 
-    if not user:
-        return jsonify({"error": "Usuario no encontrado"}), 404
+       
+        user = db.session.get(User, user_id)
 
-    playlist = db.session.execute(
-        db.select(Playlist).filter_by(id=playlist_id, user_id=user.id)
-    ).scalar_one_or_none()
-    
-    if not playlist:
-        return jsonify({"error": "Playlist no encontrada o no tienes permiso"}), 404
+        if not user:
+            return jsonify({"error": "Usuario no encontrado"}), 404
 
-    db.session.delete(playlist)
-    db.session.commit()
-    return jsonify({"message": "Playlist eliminada"}), 200
+        
+        playlist = db.session.execute(
+            db.select(Playlist).filter_by(id=playlist_id, user_id=user.id)
+        ).scalar_one_or_none()
+
+        if not playlist:
+            return jsonify({"error": "Playlist no encontrada o sin permiso"}), 404
+
+        
+        db.session.delete(playlist)
+        db.session.commit()
+
+        return jsonify({"message": "Playlist eliminada"}), 200
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Error al eliminar la playlist: {str(e)}"}), 500
 
 
-#AGREGAR CANCIONES A PLAYLIST
+
+#AGREGAR CANCIONES
 
 @api.route('/playlists/<int:playlist_id>/songs', methods=['POST'])
 @jwt_required()
 def add_song_to_playlist(playlist_id):
-    current_user_data = get_jwt_identity()
-    user = db.session.execute(
-        db.select(User).filter_by(email=current_user_data['email'])
-    ).scalar_one_or_none()
+    try:
+       
+        user_id_str = get_jwt_identity()
+        user_id = int(user_id_str)
 
-    if not user:
-        return jsonify({"error": "Usuario no encontrado"}), 404
+       
+        user = db.session.get(User, user_id)
 
-    data = request.get_json()
-    song_id = data.get('song_id')
-    name = data.get('name')
-    artist = data.get('artist')
-    audio_url = data.get('audio_url')
+        if not user:
+            return jsonify({"error": "Usuario no encontrado"}), 404
 
-    if not all([song_id, name, artist, audio_url]):
-        return jsonify({"error": "Faltan datos obligatorios de la canción"}), 400
+        data = request.get_json()
 
-    playlist = db.session.execute(
-        db.select(Playlist).filter_by(id=playlist_id, user_id=user.id)
-    ).scalar_one_or_none()
-    
-    if not playlist:
-        return jsonify({"error": "Playlist no encontrada o sin permiso"}), 404
+        
+        song_id = data.get('song_id')
+        name = data.get('name')
+        artist = data.get('artist')
+        audio_url = data.get('audio_url')
 
-    existing = db.session.execute(
-        db.select(PlaylistSong).filter_by(playlist_id=playlist_id, song_id=song_id)
-    ).scalar_one_or_none()
-    
-    if existing:
-        return jsonify({"message": "La canción ya está en la playlist"}), 200
+       
+        if not all([song_id, name, artist, audio_url]):
+            return jsonify({"error": "Faltan datos obligatorios de la canción"}), 400
 
-    new_song = PlaylistSong(
-        playlist_id=playlist_id,
-        song_id=song_id,
-        name=name,
-        artist=artist,
-        audio_url=audio_url,
-        image_url=data.get('image_url'),
-        license_url=data.get('license_url')
-    )
+        
+        playlist = db.session.execute(
+            db.select(Playlist).filter_by(id=playlist_id, user_id=user.id)
+        ).scalar_one_or_none()
 
-    db.session.add(new_song)
-    db.session.commit()
+        if not playlist:
+            return jsonify({"error": "Playlist no encontrada o sin permiso"}), 404
 
-    return jsonify({"message": "Canción añadida a la playlist"}), 201
+        
+        existing = db.session.execute(
+            db.select(PlaylistSong).filter_by(playlist_id=playlist_id, song_id=song_id)
+        ).scalar_one_or_none()
+
+        if existing:
+            return jsonify({"message": "La canción ya está en la playlist"}), 200
+
+        
+        new_song = PlaylistSong(
+            playlist_id=playlist_id,
+            song_id=song_id,
+            name=name,
+            artist=artist,
+            audio_url=audio_url,
+            image_url=data.get('image_url'),
+            license_url=data.get('license_url')
+        )
+
+        db.session.add(new_song)
+        db.session.commit()
+
+        return jsonify({"message": "Canción añadida a la playlist"}), 201
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Error al agregar canción: {str(e)}"}), 500
+
 
 #OBTENER CANCIONES DE PLAYLISTS???¿¿¿¿
 
 @api.route('/playlists/<int:playlist_id>/songs', methods=['GET'])
 @jwt_required()
 def get_songs_in_playlist(playlist_id):
-    current_user_data = get_jwt_identity()
-    user = db.session.execute(
-        db.select(User).filter_by(email=current_user_data['email'])
-    ).scalar_one_or_none()
+    try:
+      
+        user_id_str = get_jwt_identity()
+        user_id = int(user_id_str)
 
-    if not user:
-        return jsonify({"error": "Usuario no encontrado"}), 404
+       
+        user = db.session.get(User, user_id)
 
-    playlist = db.session.execute(
-        db.select(Playlist).filter_by(id=playlist_id, user_id=user.id)
-    ).scalar_one_or_none()
-    
-    if not playlist:
-        return jsonify({"error": "Playlist no encontrada o sin permiso"}), 404
+        if not user:
+            return jsonify({"error": "Usuario no encontrado"}), 404
 
-    songs = db.session.execute(
-        db.select(PlaylistSong).filter_by(playlist_id=playlist_id)
-    ).scalars().all()
-    
-    songs_serialized = [s.serialize() for s in songs]
+        
+        playlist = db.session.execute(
+            db.select(Playlist).filter_by(id=playlist_id, user_id=user.id)
+        ).scalar_one_or_none()
 
-    return jsonify(songs_serialized), 200
+        if not playlist:
+            return jsonify({"error": "Playlist no encontrada o sin permiso"}), 404
+
+        
+        songs = db.session.execute(
+            db.select(PlaylistSong).filter_by(playlist_id=playlist_id)
+        ).scalars().all()
+
+        # Serializar las canciones
+        songs_serialized = [s.serialize() for s in songs]
+
+        return jsonify(songs_serialized), 200
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Error al traer las canciones: {str(e)}"}), 500
+
 
 #ELIMINAR CANCION DE PLAYLISTS
 
 @api.route('/playlists/<int:playlist_id>/songs/<int:song_entry_id>', methods=['DELETE'])
 @jwt_required()
 def remove_song_from_playlist(playlist_id, song_entry_id):
-    current_user_data = get_jwt_identity()
-    user = db.session.execute(
-        db.select(User).filter_by(email=current_user_data['email'])
-    ).scalar_one_or_none()
+    try:
+        
+        user_id_str = get_jwt_identity()
+        user_id = int(user_id_str)
 
-    if not user:
-        return jsonify({"error": "Usuario no encontrado"}), 404
+       
+        user = db.session.get(User, user_id)
 
-    playlist = db.session.execute(
-        db.select(Playlist).filter_by(id=playlist_id, user_id=user.id)
-    ).scalar_one_or_none()
-    
-    if not playlist:
-        return jsonify({"error": "Playlist no encontrada o sin permiso"}), 404
+        if not user:
+            return jsonify({"error": "Usuario no encontrado"}), 404
 
-    song_entry = db.session.execute(
-        db.select(PlaylistSong).filter_by(id=song_entry_id, playlist_id=playlist_id)
-    ).scalar_one_or_none()
-    
-    if not song_entry:
-        return jsonify({"error": "Canción no encontrada en la playlist"}), 404
+       
+        playlist = db.session.execute(
+            db.select(Playlist).filter_by(id=playlist_id, user_id=user.id)
+        ).scalar_one_or_none()
 
-    db.session.delete(song_entry)
-    db.session.commit()
+        if not playlist:
+            return jsonify({"error": "Playlist no encontrada o sin permiso"}), 404
 
-    return jsonify({"message": "Canción eliminada de la playlist"}), 200
+        
+        song_entry = db.session.execute(
+            db.select(PlaylistSong).filter_by(id=song_entry_id, playlist_id=playlist_id)
+        ).scalar_one_or_none()
+
+        if not song_entry:
+            return jsonify({"error": "Canción no encontrada en la playlist"}), 404
+
+       
+        db.session.delete(song_entry)
+        db.session.commit()
+
+        return jsonify({"message": "Canción eliminada de la playlist"}), 200
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Error al eliminar canción: {str(e)}"}), 500

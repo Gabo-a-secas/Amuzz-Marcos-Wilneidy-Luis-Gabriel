@@ -1,3 +1,4 @@
+/* ========== ESTILOS BASE DEL PLAYER ========== */
 .player-container {
   position: fixed;
   bottom: 20px;
@@ -5,7 +6,7 @@
   transform: translateX(-50%);
   width: 90%;
   max-width: 800px;
-  background: #000000bd;;
+  background: #000000bd;
   border-radius: 10px;
   border: 1px solid #ccc;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
@@ -41,9 +42,10 @@
 }
 
 .player-actions button:hover {
-   color: #beddb8;;
+  color: #beddb8;
 }
 
+/* ========== INFORMACIÓN DE LA CANCIÓN ========== */
 .playertrack-info {
   display: flex;
   align-items: center;
@@ -71,6 +73,23 @@
   margin: 0;
 }
 
+/* ✨ NUEVO: Indicador de posición en playlist */
+.playlist-position {
+  font-size: 0.8em;
+  color: #beddb8;
+  margin: 0;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.playertrack-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* ========== CONTROLES DEL PLAYER ========== */
 .player-controls {
   display: flex;
   flex-direction: column;
@@ -80,26 +99,95 @@
 
 .main-buttons {
   display: flex;
-  gap: 20px;
+  align-items: center;
+  gap: 15px;
   font-size: 20px;
   color: #ffffff;
+  margin-bottom: 8px;
 }
 
-.icon {
+.main-buttons .icon {
   cursor: pointer;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
+  padding: 5px;
+  border-radius: 50%;
 }
 
-.icon:hover {
-   color: #beddb8;
+.main-buttons .icon:hover {
+  color: #beddb8;
+  transform: scale(1.1);
+}
+
+/* ✨ NUEVO: Botones de navegación deshabilitados */
+.main-buttons .icon.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.main-buttons .icon:not(.disabled):hover {
+  color: #beddb8;
+  transform: scale(1.1);
+}
+
+/* ✨ NUEVO: Botón play/pause más prominente */
+.main-buttons .icon:nth-child(2) {
+  font-size: 1.4em;
+  background: rgba(190, 221, 184, 0.1);
+  border-radius: 50%;
+  padding: 8px;
+}
+
+.main-buttons .icon:nth-child(2):hover {
+  background: rgba(190, 221, 184, 0.2);
+  transform: scale(1.15);
+}
+
+/* ✨ NUEVO: Spinner de carga */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+  font-size: 1.2em;
+  color: #beddb8;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========== BARRA DE PROGRESO ========== */
+.progress-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.time-elapsed, .time-full {
+  width: 50px;
+  text-align: center;
+  color: #ffffff;
+  font-size: 12px;
 }
 
 .progress-bar {
+  flex: 1;
   width: 100%;
-  margin-top: 5px;
-  background: #beddb8;
+  background: #333;
+  accent-color: #ffffff;
+  cursor: pointer;
 }
 
+.progress-bar:hover {
+  accent-color: #beddb8;
+}
+
+/* ========== CONTROLES DE VOLUMEN ========== */
 .volume-control {
   display: flex;
   align-items: center;
@@ -112,8 +200,23 @@
 .volume-bar {
   width: 100px;
   color: #ffffff;
+  accent-color: #ffffff;
+  cursor: pointer;
 }
 
+.volume-bar:hover {
+  accent-color: #beddb8;
+}
+
+/* ========== BOTONES DE ACCIÓN ========== */
+.icon {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.icon:hover {
+  color: #beddb8;
+}
 
 .add-btn {
   cursor: pointer;
@@ -122,43 +225,90 @@
 }
 
 .add-btn:hover {
-color: #beddb8;
+  color: #beddb8;
 }
 
-.heart-btn{
-cursor: pointer;
+.heart-btn {
+  cursor: pointer;
   transition: color 0.2s;
   color: #ffffff;
 }
 
-.heart-btn:hover{
+.heart-btn:hover {
   color: #beddb8;
 }
 
-.time-elapsed, .time-full{
-  color: #ffffff;
+.heart-btn.liked {
+  color: #ff6b6b;
 }
 
-.progress-bar, .volume-bar {
-  accent-color: #ffffff;
+.heart-btn.liked:hover {
+  color: #ff5252;
 }
 
-.progress-bar:hover, .volume-bar:hover {
- accent-color: #beddb8;
+
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 768px) {
+  .player-container {
+    width: 95%;
+    padding: 8px 15px;
+    gap: 10px;
+  }
+  
+  .playertrack-info {
+    width: 35%;
+  }
+  
+  .player-controls {
+    width: 35%;
+  }
+  
+  .volume-control {
+    width: 30%;
+    gap: 5px;
+  }
+  
+  .volume-bar {
+    width: 60px;
+  }
+  
+  .main-buttons {
+    gap: 10px;
+    font-size: 18px;
+  }
+  
+  .playertrack-title {
+    font-size: 12px;
+  }
+  
+  .playertrack-artist {
+    font-size: 10px;
+  }
+  
+  .playlist-position {
+    font-size: 0.7em;
+  }
 }
 
-.progress-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px; /* Opcional: espaciado entre los elementos */
-}
-
-.time-elapsed, .time-full {
-  width: 50px; /* Ajusta según lo que necesites */
-  text-align: center;
-}
-
-.progress-bar {
-  flex: 1;
+@media (max-width: 480px) {
+  .player-container {
+    flex-direction: column;
+    padding: 10px;
+    gap: 8px;
+  }
+  
+  .playertrack-info,
+  .player-controls,
+  .volume-control {
+    width: 100%;
+  }
+  
+  .volume-control {
+    justify-content: center;
+  }
+  
+  .progress-wrapper {
+    margin-top: 5px;
+  }
 }

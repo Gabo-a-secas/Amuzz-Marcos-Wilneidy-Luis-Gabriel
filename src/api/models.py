@@ -70,6 +70,7 @@ class Playlist(db.Model):
 
     user = relationship('User', backref=db.backref('playlists', lazy=True))
 
+    songs = db.relationship('PlaylistSong', backref='playlist', cascade="all, delete-orphan")
 
 class PlaylistSong(db.Model):
     __tablename__ = 'playlist_songs'
@@ -85,8 +86,7 @@ class PlaylistSong(db.Model):
     license_url = db.Column(db.String, nullable=True)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    playlist = relationship('Playlist', backref=db.backref('songs', lazy=True))
-
+    
     def serialize(self):
         return {
             "id": self.id,
