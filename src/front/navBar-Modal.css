@@ -715,3 +715,21 @@
 .navbar-dropdown-link:hover {
   color: #1db954;
 }
+
+.navbar-social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  padding-bottom: 20px;
+}
+
+.navbar-social-icons a {
+  color: white;
+  font-size: 20px;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.navbar-social-icons a:hover {
+  transform: scale(1.2);
+  color: #beddb8;
+}
