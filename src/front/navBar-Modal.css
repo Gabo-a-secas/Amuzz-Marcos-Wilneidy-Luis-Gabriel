@@ -688,7 +688,6 @@
   opacity: 1;
 }
 
-
 .navbar-dropdown summary {
   cursor: pointer;
   list-style: none;
@@ -715,7 +714,8 @@
 
 .navbar-dropdown-link:hover {
   color: #1db954;
-=======
+}
+
 .navbar-social-icons {
   display: flex;
   justify-content: center;

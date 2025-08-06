@@ -340,36 +340,29 @@ def delete_playlist(playlist_id):
         return jsonify({"error": f"Error al eliminar la playlist: {str(e)}"}), 500
 
 
-
-#AGREGAR CANCIONES
-
+# ✅ ENDPOINT POST ACTUALIZADO - Guardar información completa
 @api.route('/playlists/<int:playlist_id>/songs', methods=['POST'])
 @jwt_required()
 def add_song_to_playlist(playlist_id):
     try:
-       
         user_id_str = get_jwt_identity()
         user_id = int(user_id_str)
 
-       
         user = db.session.get(User, user_id)
-
         if not user:
             return jsonify({"error": "Usuario no encontrado"}), 404
 
         data = request.get_json()
 
-        
-        song_id = data.get('song_id')
+        # ✅ CAMPOS OBLIGATORIOS
+        song_id = data.get('song_id') or data.get('id')  # Soporte para ambos nombres
         name = data.get('name')
         artist = data.get('artist')
-        audio_url = data.get('audio_url')
+        audio_url = data.get('audio_url') or data.get('audio')  # Soporte para ambos nombres
 
-       
         if not all([song_id, name, artist, audio_url]):
             return jsonify({"error": "Faltan datos obligatorios de la canción"}), 400
 
-        
         playlist = db.session.execute(
             db.select(Playlist).filter_by(id=playlist_id, user_id=user.id)
         ).scalar_one_or_none()
@@ -377,29 +370,43 @@ def add_song_to_playlist(playlist_id):
         if not playlist:
             return jsonify({"error": "Playlist no encontrada o sin permiso"}), 404
 
-        
         existing = db.session.execute(
-            db.select(PlaylistSong).filter_by(playlist_id=playlist_id, song_id=song_id)
+            db.select(PlaylistSong).filter_by(playlist_id=playlist_id, song_id=str(song_id))
         ).scalar_one_or_none()
 
         if existing:
             return jsonify({"message": "La canción ya está en la playlist"}), 200
 
-        
+        # ✅ PROCESAR GÉNEROS
+        genres = data.get('genres', [])
+        if isinstance(genres, list):
+            genres_str = ','.join(genres) if genres else None
+        else:
+            genres_str = str(genres) if genres else None
+
+        # ✅ CREAR CANCIÓN CON INFORMACIÓN COMPLETA
         new_song = PlaylistSong(
             playlist_id=playlist_id,
-            song_id=song_id,
+            song_id=str(song_id),
             name=name,
             artist=artist,
             audio_url=audio_url,
-            image_url=data.get('image_url'),
-            license_url=data.get('license_url')
+            image_url=data.get('image_url') or data.get('image'),
+            license_url=data.get('license_url') or data.get('license'),
+            # ✅ NUEVOS CAMPOS
+            duration=data.get('duration'),
+            genres=genres_str,
+            release_date=data.get('release_date'),
+            album_name=data.get('album_name')
         )
 
         db.session.add(new_song)
         db.session.commit()
 
-        return jsonify({"message": "Canción añadida a la playlist"}), 201
+        return jsonify({
+            "message": "Canción añadida a la playlist",
+            "song": new_song.serialize()
+        }), 201
 
     except Exception as e:
         import traceback
@@ -407,23 +414,18 @@ def add_song_to_playlist(playlist_id):
         return jsonify({"error": f"Error al agregar canción: {str(e)}"}), 500
 
 
-#OBTENER CANCIONES DE PLAYLISTS???¿¿¿¿
-
+# ✅ ENDPOINT GET ACTUALIZADO - Devolver información completa
 @api.route('/playlists/<int:playlist_id>/songs', methods=['GET'])
 @jwt_required()
 def get_songs_in_playlist(playlist_id):
     try:
-      
         user_id_str = get_jwt_identity()
         user_id = int(user_id_str)
 
-       
         user = db.session.get(User, user_id)
-
         if not user:
             return jsonify({"error": "Usuario no encontrado"}), 404
 
-        
         playlist = db.session.execute(
             db.select(Playlist).filter_by(id=playlist_id, user_id=user.id)
         ).scalar_one_or_none()
@@ -431,13 +433,27 @@ def get_songs_in_playlist(playlist_id):
         if not playlist:
             return jsonify({"error": "Playlist no encontrada o sin permiso"}), 404
 
-        
         songs = db.session.execute(
             db.select(PlaylistSong).filter_by(playlist_id=playlist_id)
         ).scalars().all()
 
-        # Serializar las canciones
-        songs_serialized = [s.serialize() for s in songs]
+        # ✅ SERIALIZAR CON INFORMACIÓN COMPLETA
+        songs_serialized = []
+        for song in songs:
+            song_data = song.serialize()
+            
+            # ✅ PROCESAR GÉNEROS PARA EL FRONTEND
+            if song_data.get('genres'):
+                try:
+                    # Si es un string separado por comas, convertir a array
+                    if isinstance(song_data['genres'], str):
+                        song_data['genres'] = song_data['genres'].split(',')
+                except:
+                    song_data['genres'] = []
+            else:
+                song_data['genres'] = []
+            
+            songs_serialized.append(song_data)
 
         return jsonify(songs_serialized), 200
 
