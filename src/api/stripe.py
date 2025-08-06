@@ -10,6 +10,7 @@ endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
 
 stripe_bp = Blueprint('stripe_bp', __name__)
 
+
 @stripe_bp.route('/api/create-checkout-session', methods=['POST', 'OPTIONS'])
 @cross_origin(origins="*")
 @jwt_required(optional=True)
@@ -17,21 +18,49 @@ def create_checkout_session():
     if request.method == "OPTIONS":
         return jsonify({}), 200
     try:
+        stripe.api_key = os.getenv(
+            "STRIPE_SECRET_KEY")  # <= ponlo aquí adentro
         identity = get_jwt_identity()
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
                     'currency': 'eur',
-                    'product_data': {'name': 'Amuzz Premium Access'},
-                    'unit_amount': 500,
+                    'product_data': {
+                        'name': 'Apóyanos — Invítanos un café'
+                    },
+                    'unit_amount': 200,
                 },
                 'quantity': 1,
             }],
             mode='payment',
-            success_url=f'{frontend_url}/payment-success',
-            cancel_url=f'{frontend_url}/payment-cancelled',
+            success_url=f'{frontend_url}/',
+            cancel_url=f'{frontend_url}/',
+            metadata={'email': identity} if identity else {}
+        )
+
+        return jsonify({'url': session.url}), 200
+    except Exception as e:
+        print(f"Error en checkout: {e}")
+        return jsonify({'error': str(e)}), 500
+
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {
+                        'name': 'Apóyanos — Invítanos un café'
+                    },
+                    'unit_amount': 200,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f'{frontend_url}/',
+            cancel_url=f'{frontend_url}/',
             metadata={'email': identity} if identity else {}
         )
         return jsonify({'url': session.url}), 200
@@ -39,13 +68,15 @@ def create_checkout_session():
         print(f"Error en checkout: {e}")
         return jsonify({'error': str(e)}), 500
 
+
 @stripe_bp.route('/api/webhook', methods=['POST'])
 @cross_origin(origins="*")
 def stripe_webhook():
     payload = request.data
     sig_header = request.headers.get('stripe-signature')
     try:
-        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret)
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
             user_email = session['metadata'].get('email')

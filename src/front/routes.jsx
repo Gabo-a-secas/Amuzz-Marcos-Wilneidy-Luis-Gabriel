@@ -10,6 +10,7 @@ import Results from "./pages/Results";
 import Playlists from "./components/Playlists";
 import VerifyEmail from "./pages/VerifyEmail"; 
 
+
 export const router = createBrowserRouter(
     createRoutesFromElements(
     
