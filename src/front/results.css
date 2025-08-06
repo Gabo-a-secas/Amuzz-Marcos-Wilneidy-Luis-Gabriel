@@ -354,11 +354,11 @@
 
 .happy .music-card .icon,
 .energic .music-card .icon,
-.random .music-card .icon { color: #00ff88; }
+.random .music-card .icon { color: #b3f3d5cb; }
 
-.sad .music-card .icon { color: #00b3ff; }
-.anxiety .music-card .icon { color: #ffcc00; }
+.sad .music-card .icon { color: #8fd8f8c7; }
+.anxiety .music-card .icon { color: #fceba5c9; }
 .relax .music-card .icon { color: #6a5acd; }
-.party .music-card .icon { color: #ff00ff; }
-.latin .music-card .icon { color: #ff4500; }
+.party .music-card .icon { color: #f28cf2cf; }
+.latin .music-card .icon { color: #fca586d6; }
 

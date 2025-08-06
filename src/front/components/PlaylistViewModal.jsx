@@ -19,7 +19,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
 
             try {
                 const token = localStorage.getItem("token");
-                const res = await fetch(`https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists/${playlistId}/songs`, {
+                const res = await fetch(`https://legendary-eureka-975rxjgrgp6v3xjrr-3001.app.github.dev/api/playlists/${playlistId}/songs`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -49,9 +49,9 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
     try {
         let url = "";
         if (confirmDeleteId === "playlist") {
-            url = `https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists/${playlistId}`;
+            url = `https://legendary-eureka-975rxjgrgp6v3xjrr-3001.app.github.dev/api/playlists/${playlistId}`;
         } else {
-            url = `https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists/${playlistId}/songs/${confirmDeleteId}`;
+            url = `https://legendary-eureka-975rxjgrgp6v3xjrr-3001.app.github.dev/api/playlists/${playlistId}/songs/${confirmDeleteId}`;
         }
 
         const res = await fetch(url, {
