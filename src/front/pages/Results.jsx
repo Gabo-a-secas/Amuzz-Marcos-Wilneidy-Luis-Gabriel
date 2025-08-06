@@ -3,11 +3,12 @@ import { useEffect, useState, useRef } from "react";
 import { usePlayer } from "../hooks/PlayerContext";
 import { FaPlay, FaPlus } from "react-icons/fa";
 import "../results.css";
-import { addSongToPlaylist, getUserPlaylists, createUserPlaylist } from "../store";
+import { addSongToPlaylist, createUserPlaylist, getUserPlaylistsWithGuaranteedCounts } from "../store";
 import NewPlaylistModal from "../components/NewPlaylistModal";
 import "../NewPlaylistModal.css";
 import { createPortal } from "react-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
+import { notifyPlaylistSongAdded } from "../PlaylistEvents.js";
 
 const moodVideos = {
   happy: "/videos/feliz.mp4",
@@ -30,17 +31,96 @@ const Results = () => {
 
   const { store, refreshPlaylists } = useGlobalReducer();
   const { playlists } = store;
+  const [playlistsWithCounts, setPlaylistsWithCounts] = useState([]);
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [showPlaylistMenuId, setShowPlaylistMenuId] = useState(null);
   const [showNewPlaylistModal, setShowNewPlaylistModal] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
   const dropdownRef = useRef(null);
+  const plusButtonRefs = useRef({});
 
+  // Cargar playlists con conteos al montar
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    const loadPlaylistsWithCounts = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-    refreshPlaylists();
+      try {
+        console.log("🔄 Results: Loading playlists with GUARANTEED counts...");
+        const playlistsData = await getUserPlaylistsWithGuaranteedCounts(token);
+        console.log("📊 Results: Playlists with guaranteed counts received:", playlistsData);
+
+        if (playlistsData && playlistsData.length > 0) {
+          setPlaylistsWithCounts(playlistsData);
+
+          // Verificar que los conteos están correctos
+          playlistsData.forEach(playlist => {
+            console.log(`📝 Results: Playlist "${playlist.name}": ${playlist.songCount || 0} canciones (${playlist.hasRealCount ? 'REAL' : 'FALLBACK'})`);
+          });
+        } else {
+          console.log("⚠️ Results: No playlists data received");
+        }
+      } catch (error) {
+        console.error("❌ Error loading playlists with counts:", error);
+        // Fallback: usar playlists regulares
+        refreshPlaylists();
+      }
+    };
+
+    loadPlaylistsWithCounts();
+  }, []);
+
+  // Event listener para sincronizar contadores cuando se agregan canciones
+  useEffect(() => {
+    const handlePlaylistUpdated = (event) => {
+      const { playlistId, action, source } = event.detail;
+
+      // Solo actualizar si NO viene de este mismo componente
+      if (source === 'results') return;
+
+      if (action === 'song_added') {
+        // Actualizar el contador de la playlist específica
+        setPlaylistsWithCounts(prevPlaylists =>
+          prevPlaylists.map(p =>
+            p.id === playlistId
+              ? { ...p, songCount: (p.songCount || 0) + 1 }
+              : p
+          )
+        );
+      } else if (action === 'song_removed') {
+        // ✅ AGREGAR: Manejar eliminación de canciones
+        setPlaylistsWithCounts(prevPlaylists =>
+          prevPlaylists.map(p =>
+            p.id === playlistId
+              ? { ...p, songCount: Math.max(0, (p.songCount || 0) - 1) }
+              : p
+          )
+        );
+      } else if (action === 'refresh' || action === 'playlist_created') {
+        // Recargar todas las playlists con conteos
+        const loadPlaylistsWithCounts = async () => {
+          const token = localStorage.getItem("token");
+          if (token) {
+            try {
+              const playlistsData = await getUserPlaylistsWithGuaranteedCounts(token);
+              if (playlistsData) {
+                setPlaylistsWithCounts(playlistsData);
+              }
+            } catch (error) {
+              console.error("Error reloading playlists:", error);
+            }
+          }
+        };
+        loadPlaylistsWithCounts();
+      }
+    };
+
+    window.addEventListener('playlistUpdated', handlePlaylistUpdated);
+
+    return () => {
+      window.removeEventListener('playlistUpdated', handlePlaylistUpdated);
+    };
   }, []);
 
   useEffect(() => {
@@ -57,7 +137,6 @@ const Results = () => {
       });
   }, [mood]);
 
-
   const handleEscuchar = (track) => {
     const trackData = {
       id: track.id,
@@ -73,7 +152,6 @@ const Results = () => {
       genres: track.genres,
     };
 
-
     const playlistData = tracks.map(t => ({
       id: t.id,
       name: t.name,
@@ -87,7 +165,6 @@ const Results = () => {
       waveform: t.waveform,
       genres: t.genres,
     }));
-
 
     openPlayer(trackData, playlistData);
   };
@@ -111,6 +188,19 @@ const Results = () => {
     const res = await addSongToPlaylist(playlistId, songData, token);
     if (res.ok) {
       alert("Canción agregada");
+
+      // Solo actualizar contador local, NO duplicar con la notificación
+      setPlaylistsWithCounts(prevPlaylists =>
+        prevPlaylists.map(p =>
+          p.id === playlistId
+            ? { ...p, songCount: (p.songCount || 0) + 1 }
+            : p
+        )
+      );
+
+      // Notificar al Player (pero el Player no debe incrementar desde Results)
+      notifyPlaylistSongAdded(playlistId, 'results');
+
       refreshPlaylists();
       setShowPlaylistMenuId(null);
     } else {
@@ -121,14 +211,33 @@ const Results = () => {
   };
 
   const togglePlaylistMenu = (trackId) => {
-    setShowPlaylistMenuId(prev => (prev === trackId ? null : trackId));
+    if (showPlaylistMenuId === trackId) {
+      setShowPlaylistMenuId(null);
+      return;
+    }
+
+    // Calcular posición del dropdown basada en el botón plus
+    const buttonElement = plusButtonRefs.current[trackId];
+    if (buttonElement) {
+      const rect = buttonElement.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+      setDropdownPosition({
+        top: rect.bottom + scrollTop + 5, // 5px debajo del botón
+        left: rect.left + scrollLeft - 150, // Ajustar hacia la izquierda
+      });
+    }
+
+    setShowPlaylistMenuId(trackId);
   };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
+        !dropdownRef.current.contains(event.target) &&
+        !Object.values(plusButtonRefs.current).some(ref => ref && ref.contains(event.target))
       ) {
         setShowPlaylistMenuId(null);
       }
@@ -140,6 +249,18 @@ const Results = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Cerrar dropdown al hacer scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (showPlaylistMenuId) {
+        setShowPlaylistMenuId(null);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [showPlaylistMenuId]);
 
   const videoURL = moodVideos[mood] || "/videos/feliz.mp4";
 
@@ -203,38 +324,76 @@ const Results = () => {
                 <FaPlay onClick={() => handleEscuchar(track)} className="icon" />
 
                 <div className="plus-container">
-                  <button className="plus-btn" onClick={() => togglePlaylistMenu(track.id)}>+</button>
-                  {showPlaylistMenuId === track.id && (
-                    <div className="playlist-dropdown" ref={dropdownRef}>
-                      {Array.isArray(playlists) && playlists.map((playlist) => (
-                        <button
-                          key={playlist.id}
-                          className="playlist-option"
-                          onClick={() => handleAddToPlaylist(playlist.id, track)}
-                          tabIndex={0}
-                        >
-                          {playlist.name}
-                        </button>
-                      ))}
-                      <button
-                        className="playlist-option create-new-playlist"
-                        onClick={() => {
-                          setSelectedTrack(track);
-                          setShowPlaylistMenuId(null);
-                          setShowNewPlaylistModal(true);
-                        }}
-                        tabIndex={0}
-                      >
-                        + Crear nueva playlist
-                      </button>
-                    </div>
-                  )}
+                  <button
+                    ref={el => plusButtonRefs.current[track.id] = el}
+                    className="plus-btn"
+                    onClick={() => togglePlaylistMenu(track.id)}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+
+      {showPlaylistMenuId && createPortal(
+        <div
+          className="playlist-dropdown-portal"
+          ref={dropdownRef}
+          style={{
+            position: 'absolute',
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            zIndex: 10000,
+          }}
+        >
+          {/* Usar playlistsWithCounts en lugar de playlists para mostrar conteos */}
+          {Array.isArray(playlistsWithCounts) && playlistsWithCounts.length > 0
+            ? playlistsWithCounts.map((playlist) => (
+              <button
+                key={playlist.id}
+                className="playlist-option"
+                onClick={() => handleAddToPlaylist(playlist.id, tracks.find(t => t.id === showPlaylistMenuId))}
+                tabIndex={0}
+              >
+                <span className="playlist-name">{playlist.name}</span>
+                <span className="playlist-count">
+                  {playlist.songCount !== undefined
+                    ? `${playlist.songCount} ${playlist.songCount === 1 ? 'canción' : 'canciones'}`
+                    : '0 canciones'
+                  }
+                </span>
+              </button>
+            ))
+            : Array.isArray(playlists) && playlists.map((playlist) => (
+              <button
+                key={playlist.id}
+                className="playlist-option"
+                onClick={() => handleAddToPlaylist(playlist.id, tracks.find(t => t.id === showPlaylistMenuId))}
+                tabIndex={0}
+              >
+                <span className="playlist-name">{playlist.name}</span>
+                <span className="playlist-count">0 canciones</span>
+              </button>
+            ))
+          }
+          <button
+            className="playlist-option create-new-playlist"
+            onClick={() => {
+              setSelectedTrack(tracks.find(t => t.id === showPlaylistMenuId));
+              setShowPlaylistMenuId(null);
+              setShowNewPlaylistModal(true);
+            }}
+            tabIndex={0}
+          >
+            + Crear nueva playlist
+          </button>
+        </div>,
+        document.body
+      )}
 
       {showNewPlaylistModal &&
         createPortal(
@@ -263,6 +422,17 @@ const Results = () => {
                   if (addRes.ok) {
                     alert("🎶 Playlist creada y canción agregada con éxito!");
                     setSelectedTrack(null);
+
+                    // Actualizar contador local para la nueva playlist
+                    setPlaylistsWithCounts(prev => [...prev, {
+                      ...result,
+                      songCount: 1,
+                      hasRealCount: true
+                    }]);
+
+                    // ✅ Notificar al Player
+                    notifyPlaylistSongAdded(result.id, 'results');
+
                   } else {
                     alert("Playlist creada, pero error al añadir la canción.");
                   }

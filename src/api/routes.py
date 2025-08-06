@@ -340,18 +340,14 @@ def delete_playlist(playlist_id):
         return jsonify({"error": f"Error al eliminar la playlist: {str(e)}"}), 500
 
 
-
-#AGREGAR CANCIONES
-
 @api.route('/playlists/<int:playlist_id>/songs', methods=['POST'])
 @jwt_required()
 def add_song_to_playlist(playlist_id):
     try:
-       
+
         user_id_str = get_jwt_identity()
         user_id = int(user_id_str)
 
-       
         user = db.session.get(User, user_id)
 
         if not user:
@@ -359,17 +355,14 @@ def add_song_to_playlist(playlist_id):
 
         data = request.get_json()
 
-        
         song_id = data.get('song_id')
         name = data.get('name')
         artist = data.get('artist')
         audio_url = data.get('audio_url')
 
-       
         if not all([song_id, name, artist, audio_url]):
             return jsonify({"error": "Faltan datos obligatorios de la canción"}), 400
 
-        
         playlist = db.session.execute(
             db.select(Playlist).filter_by(id=playlist_id, user_id=user.id)
         ).scalar_one_or_none()
@@ -377,7 +370,6 @@ def add_song_to_playlist(playlist_id):
         if not playlist:
             return jsonify({"error": "Playlist no encontrada o sin permiso"}), 404
 
-        
         existing = db.session.execute(
             db.select(PlaylistSong).filter_by(playlist_id=playlist_id, song_id=song_id)
         ).scalar_one_or_none()
@@ -385,7 +377,6 @@ def add_song_to_playlist(playlist_id):
         if existing:
             return jsonify({"message": "La canción ya está en la playlist"}), 200
 
-        
         new_song = PlaylistSong(
             playlist_id=playlist_id,
             song_id=song_id,
@@ -406,24 +397,21 @@ def add_song_to_playlist(playlist_id):
         traceback.print_exc()
         return jsonify({"error": f"Error al agregar canción: {str(e)}"}), 500
 
-
 #OBTENER CANCIONES DE PLAYLISTS???¿¿¿¿
 
 @api.route('/playlists/<int:playlist_id>/songs', methods=['GET'])
 @jwt_required()
 def get_songs_in_playlist(playlist_id):
     try:
-      
+
         user_id_str = get_jwt_identity()
         user_id = int(user_id_str)
 
-       
         user = db.session.get(User, user_id)
 
         if not user:
             return jsonify({"error": "Usuario no encontrado"}), 404
 
-        
         playlist = db.session.execute(
             db.select(Playlist).filter_by(id=playlist_id, user_id=user.id)
         ).scalar_one_or_none()
@@ -431,7 +419,6 @@ def get_songs_in_playlist(playlist_id):
         if not playlist:
             return jsonify({"error": "Playlist no encontrada o sin permiso"}), 404
 
-        
         songs = db.session.execute(
             db.select(PlaylistSong).filter_by(playlist_id=playlist_id)
         ).scalars().all()

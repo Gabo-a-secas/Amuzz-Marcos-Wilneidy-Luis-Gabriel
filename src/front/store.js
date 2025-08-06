@@ -198,3 +198,264 @@ export async function addSongToPlaylist(playlistId, songData, token) {
     return { ok: false, result: null };
   }
 }
+
+// Agregar estas funciones al store.js
+
+/**
+ * Obtener canciones de una playlist específica
+ * @param {string} playlistId - ID de la playlist
+ * @param {string} token - Token de autenticación
+ * @returns {Promise<Array>} Array de canciones o array vacío
+ */
+export const getPlaylistSongs = async (playlistId, token) => {
+  try {
+    const response = await fetch(`http://localhost:8000/api/playlists/${playlistId}/songs`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`API response for playlist ${playlistId}:`, data);
+      
+      // Manejar diferentes estructuras de respuesta
+      if (Array.isArray(data)) return data;
+      if (data && data.songs && Array.isArray(data.songs)) return data.songs;
+      if (data && Array.isArray(data.data)) return data.data;
+      return [];
+    } else {
+      console.error(`Error fetching songs for playlist ${playlistId}:`, response.status, response.statusText);
+      return [];
+    }
+  } catch (error) {
+    console.error(`Network error fetching songs for playlist ${playlistId}:`, error);
+    return [];
+  }
+};
+
+/**
+ * Obtener canciones de playlist con múltiples endpoints de respaldo
+ * @param {string} playlistId - ID de la playlist
+ * @param {string} token - Token de autenticación
+ * @returns {Promise<Array>} Array de canciones
+ */
+export const getPlaylistSongsWithFallback = async (playlistId, token) => {
+  // Intentar endpoint principal primero
+  let songs = await getPlaylistSongs(playlistId, token);
+  
+  if (songs && songs.length > 0) {
+    return songs;
+  }
+  
+  // Si no funciona, probar endpoints alternativos
+  const alternativeEndpoints = [
+    `http://localhost:8000/api/playlists/${playlistId}`,
+    `http://localhost:8000/playlists/${playlistId}/songs`,
+    `http://localhost:8000/playlists/${playlistId}`,
+  ];
+
+  for (const endpoint of alternativeEndpoints) {
+    try {
+      console.log(`Trying alternative endpoint: ${endpoint}`);
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`Success with endpoint ${endpoint}:`, data);
+        
+        // Manejar diferentes estructuras de respuesta
+        if (Array.isArray(data)) return data;
+        if (data.songs && Array.isArray(data.songs)) return data.songs;
+        if (data.data && Array.isArray(data.data)) return data.data;
+        if (data.playlist && data.playlist.songs) return data.playlist.songs;
+      }
+    } catch (error) {
+      console.log(`Endpoint ${endpoint} failed:`, error);
+      continue;
+    }
+  }
+  
+  return [];
+};
+
+/**
+ * Obtener playlists del usuario con conteo de canciones
+ * @param {string} token - Token de autenticación
+ * @returns {Promise<Array>} Array de playlists con conteo de canciones
+ */
+export const getUserPlaylistsWithSongCounts = async (token) => {
+  try {
+    // Primero obtener las playlists
+    const playlists = await getUserPlaylists(token);
+    
+    if (!playlists || !Array.isArray(playlists)) {
+      return [];
+    }
+    
+    // Luego obtener el conteo de canciones para cada una
+    const playlistsWithCounts = await Promise.all(
+      playlists.map(async (playlist) => {
+        try {
+          // Verificar si ya tiene información de canciones
+          if (playlist.songCount !== undefined) {
+            return playlist;
+          }
+          
+          if (playlist.songs && Array.isArray(playlist.songs)) {
+            return {
+              ...playlist,
+              songCount: playlist.songs.length,
+              hasRealCount: true
+            };
+          }
+          
+          // Si no, obtener canciones desde la API
+          const songs = await getPlaylistSongsWithFallback(playlist.id, token);
+          
+          return {
+            ...playlist,
+            songCount: songs.length,
+            songs: songs,
+            hasRealCount: true
+          };
+        } catch (error) {
+          console.error(`Error getting song count for playlist ${playlist.name}:`, error);
+          return {
+            ...playlist,
+            songCount: 0,
+            songs: [],
+            hasRealCount: false
+          };
+        }
+      })
+    );
+    
+    console.log("Playlists with song counts:", playlistsWithCounts);
+    return playlistsWithCounts;
+    
+  } catch (error) {
+    console.error('Error getting playlists with song counts:', error);
+    return [];
+  }
+};
+
+
+// Agregar esta función mejorada al store.js
+
+/**
+ * Obtener playlists del usuario con conteo GARANTIZADO de canciones
+ * Esta función siempre intentará obtener el conteo real de canciones
+ * @param {string} token - Token de autenticación
+ * @returns {Promise<Array>} Array de playlists con conteo garantizado de canciones
+ */
+export const getUserPlaylistsWithGuaranteedCounts = async (token) => {
+  try {
+    console.log("🔍 Getting playlists with GUARANTEED counts...");
+    
+    // Paso 1: Obtener las playlists básicas
+    const playlists = await getUserPlaylists(token);
+    
+    if (!playlists || !Array.isArray(playlists) || playlists.length === 0) {
+      console.log("🔍 No playlists found");
+      return [];
+    }
+    
+    console.log(`🔍 Found ${playlists.length} playlists, getting song counts...`);
+    
+    // Paso 2: Para cada playlist, obtener el conteo REAL de canciones
+    const playlistsWithGuaranteedCounts = await Promise.all(
+      playlists.map(async (playlist, index) => {
+        try {
+          console.log(`🔍 [${index + 1}/${playlists.length}] Getting songs for: ${playlist.name}`);
+          
+          // Solo usar el endpoint que funciona
+          const endpoints = [
+            `https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists/${playlist.id}/songs`,
+          ];
+          
+          let songs = [];
+          let success = false;
+          
+          for (const endpoint of endpoints) {
+            try {
+              console.log(`🔍 Trying endpoint: ${endpoint}`);
+              
+              const response = await fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                console.log(`🔍 Response for ${playlist.name}:`, data);
+                
+                // Manejar diferentes formatos de respuesta
+                if (Array.isArray(data)) {
+                  songs = data;
+                } else if (data && Array.isArray(data.songs)) {
+                  songs = data.songs;
+                } else if (data && Array.isArray(data.data)) {
+                  songs = data.data;
+                } else {
+                  songs = [];
+                }
+                
+                success = true;
+                console.log(`✅ Found ${songs.length} songs for "${playlist.name}"`);
+                break;
+              } else {
+                console.log(`❌ Endpoint failed: ${response.status} ${response.statusText}`);
+              }
+            } catch (endpointError) {
+              console.log(`❌ Endpoint error:`, endpointError.message);
+              continue;
+            }
+          }
+          
+          const finalSongCount = songs.length;
+          
+          return {
+            ...playlist,
+            songCount: finalSongCount,
+            songs: songs, // Incluir las canciones para referencia
+            hasRealCount: success,
+            lastCountUpdate: Date.now()
+          };
+          
+        } catch (error) {
+          console.error(`❌ Error getting songs for playlist ${playlist.name}:`, error);
+          return {
+            ...playlist,
+            songCount: 0,
+            songs: [],
+            hasRealCount: false,
+            lastCountUpdate: Date.now()
+          };
+        }
+      })
+    );
+    
+    console.log("🎯 Final playlists with guaranteed counts:");
+    playlistsWithGuaranteedCounts.forEach(playlist => {
+      console.log(`🎯 "${playlist.name}": ${playlist.songCount} canciones (${playlist.hasRealCount ? 'REAL' : 'FALLBACK'})`);
+    });
+    
+    return playlistsWithGuaranteedCounts;
+    
+  } catch (error) {
+    console.error('❌ Error in getUserPlaylistsWithGuaranteedCounts:', error);
+    return [];
+  }
+};
