@@ -7,7 +7,8 @@
 
 .background-video {
   position: fixed;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
   object-fit: cover;
@@ -34,7 +35,7 @@
 .music-card {
   display: flex;
   align-items: center;
-  background-color: rgba(255,255,255,0.08);
+  background-color: rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 16px;
   animation: fadeIn 0.6s ease-in-out;
@@ -57,24 +58,37 @@
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   -webkit-mask-composite: destination-out;
-  opacity: 0; 
+  opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .music-card:hover::before {
-  opacity: 1; 
+  opacity: 1;
   animation: borderFlow 3s linear infinite;
 }
 
 @keyframes borderFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes pulseWave {
-  from { transform: scaleY(1); }
-  to { transform: scaleY(1.5); }
+  from {
+    transform: scaleY(1);
+  }
+
+  to {
+    transform: scaleY(1.5);
+  }
 }
 
 
@@ -84,12 +98,14 @@
   transform: scale(1.02);
   box-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88;
 }
+
 .happy .music-card:hover .wave-bar-mini,
 .energic .music-card:hover .wave-bar-mini,
 .random .music-card:hover .wave-bar-mini {
   background-color: #aaffc3;
   animation: pulseWave 0.5s infinite alternate;
 }
+
 .happy .music-card::before,
 .energic .music-card::before,
 .random .music-card::before {
@@ -100,10 +116,12 @@
   transform: scale(1.02);
   box-shadow: 0 0 20px #00b3ff, 0 0 40px #00b3ff;
 }
+
 .sad .music-card:hover .wave-bar-mini {
   background-color: #66d9ff;
   animation: pulseWave 0.5s infinite alternate;
 }
+
 .sad .music-card::before {
   background: linear-gradient(270deg, #00b3ff, #66d9ff, #00b3ff);
 }
@@ -112,10 +130,12 @@
   transform: scale(1.02);
   box-shadow: 0 0 20px #ffcc00, 0 0 40px #ffcc00;
 }
+
 .anxiety .music-card:hover .wave-bar-mini {
   background-color: #ffee99;
   animation: pulseWave 0.5s infinite alternate;
 }
+
 .anxiety .music-card::before {
   background: linear-gradient(270deg, #ffcc00, #ffee99, #ffcc00);
 }
@@ -124,10 +144,12 @@
   transform: scale(1.02);
   box-shadow: 0 0 20px #6a5acd, 0 0 40px #6a5acd;
 }
+
 .relax .music-card:hover .wave-bar-mini {
   background-color: #b0a7ff;
   animation: pulseWave 0.5s infinite alternate;
 }
+
 .relax .music-card::before {
   background: linear-gradient(270deg, #6a5acd, #b0a7ff, #6a5acd);
 }
@@ -136,10 +158,12 @@
   transform: scale(1.02);
   box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff;
 }
+
 .party .music-card:hover .wave-bar-mini {
   background-color: #ff99ff;
   animation: pulseWave 0.5s infinite alternate;
 }
+
 .party .music-card::before {
   background: linear-gradient(270deg, #ff00ff, #ff99ff, #ff00ff);
 }
@@ -148,10 +172,12 @@
   transform: scale(1.02);
   box-shadow: 0 0 20px #ff4500, 0 0 40px #ff4500;
 }
+
 .latin .music-card:hover .wave-bar-mini {
   background-color: #ffb366;
   animation: pulseWave 0.5s infinite alternate;
 }
+
 .latin .music-card::before {
   background: linear-gradient(270deg, #ff4500, #ffb366, #ff4500);
 }
@@ -191,8 +217,15 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 
@@ -235,62 +268,115 @@
   cursor: pointer;
 }
 
-.playlist-dropdown {
-  position: absolute;
-  top: 100%; 
-  right: 0;
-  background: rgba(30, 30, 30, 0.95);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-  padding: 8px 0;
-  min-width: 200px;
-  z-index: 1000;
-  animation: dropdownFadeIn 0.15s ease forwards;
-}
 
-@keyframes dropdownFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 .playlist-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
   background: transparent;
   border: none;
-  width: 100%;
-  padding: 10px 16px;
-  color: #eee;
-  font-size: 0.95rem;
-  text-align: left;
+  color: #ffffff;
   cursor: pointer;
-  transition: background-color 0.15s ease;
-  user-select: none;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: left;
+  width: 100%;
 }
 
+.playlist-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(2px);
+}
 
-.playlist-option:hover,
-.playlist-option:focus {
-  background-color: #1db954;
-  color: #fff;
-  outline: none;
+.playlist-option:last-child {
+  border-bottom: none;
+}
+
+.playlist-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: #ffffff;
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlist-count {
+  font-size: 12px;
+  color: #9ca3af;
+  opacity: 0.8;
+  font-weight: 400;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.playlist-option:hover .playlist-count {
+  color: #d1d5db;
+  opacity: 1;
 }
 
 .playlist-option.create-new-playlist {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(99, 102, 241, 0.1);
   font-weight: 600;
-  color: #1db954;
-  padding-top: 12px;
+  justify-content: center;
 }
+
+.playlist-option.create-new-playlist:hover {
+  background: rgba(99, 102, 241, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Mejorar el dropdown principal */
+.playlist-dropdown-portal {
+  background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+  border: 1px solid #3a3a4e;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  min-width: 280px;
+  max-width: 320px;
+  backdrop-filter: blur(10px);
+  animation: dropdownAppear 0.2s ease-out;
+  overflow: hidden;
+}
+
+@keyframes dropdownAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .playlist-dropdown-portal {
+    min-width: 250px;
+    max-width: 280px;
+  }
+  
+  .playlist-name {
+    max-width: 150px;
+  }
+  
+  .playlist-option {
+    padding: 10px 12px;
+  }
+}
+
+
+
 
 
 .music-card {
   position: relative;
-  padding-left: 45px; 
+  padding-left: 45px;
 }
 
 
@@ -324,7 +410,7 @@
   .music-card {
     padding-left: 35px;
   }
-  
+
   .track-number {
     width: 20px;
     height: 20px;
@@ -332,3 +418,5 @@
     left: 8px;
   }
 }
+
+
