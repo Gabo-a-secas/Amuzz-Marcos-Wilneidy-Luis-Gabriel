@@ -89,9 +89,10 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
       <div className="verification-content">
         <span className="verification-icon">✉️</span>
         <div className="verification-text">
-          <p className="verification-title">Verifica tu dirección de email</p>
+          <p className="verification-title">Verify your email address</p>
           <p className="verification-subtitle">
-            Te hemos enviado un email de verificación a <strong>{email}</strong>
+            We've sent you a verification email at <strong>{email}</strong>.
+            Please make sure you check your <strong>spam folder</strong>!
           </p>
         </div>
         <div className="verification-actions">
@@ -102,7 +103,7 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
           >
             {isResending ? (
               <>
-                <span className="spinner">🔄</span> Enviando...
+                <span className="spinner">🔄</span> Sending...
               </>
             ) : resendCooldown > 0 ? (
               `Reenviar en ${resendCooldown}s`

@@ -174,7 +174,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Iniciar Sesión</h5>
+            <h5 className="modal-title">Login</h5>
             <button
               type="button"
               className="modal-close-btn"
@@ -217,7 +217,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Contraseña</label>
+                <label className="form-label">Password</label>
                 <div className="password-input-wrapper">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -251,7 +251,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
                     handleForgotPassword();
                   }}
                 >
-                  ¿Olvidaste tu contraseña?
+                  Forgot your password?
                 </a>
               </div>
             </form>
@@ -264,7 +264,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
               onClick={handleClose} 
               disabled={isLoading}
             >
-              Cancelar
+              Cancel
             </button>
             <button 
               type="submit" 
@@ -274,7 +274,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
             >
               {isLoading ? (
                 <>
-                  <span className="form-spinner" /> Iniciando sesión...
+                  <span className="form-spinner" /> Logging in...
                 </>
               ) : (
                 'Iniciar Sesión'
@@ -283,7 +283,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
           </div>
 
           <div className="modal-divider">
-            <span>¿No tienes una cuenta?</span>
+            <span>Don't have an account yet?</span>
           </div>
 
           <div className="modal-footer-secondary">
@@ -293,7 +293,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
               onClick={() => onSwitchToRegister && onSwitchToRegister()}
               disabled={isLoading}
             >
-              Registrarse
+              Register
             </button>
           </div>
         </div>

@@ -230,7 +230,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
               )}
 
               <div className="form-group">
-                <label className="form-label">Nombre Completo *</label>
+                <label className="form-label">Full name</label>
                 <input
                   type="text"
                   name="fullName"
@@ -238,7 +238,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
                   value={formData.fullName}
                   onChange={handleChange}
                   disabled={isLoading}
-                  placeholder="Ingresa tu nombre completo"
+                  placeholder="Type in your full name"
                   autoComplete="name"
                 />
                 {errors.fullName && (
@@ -247,7 +247,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Nombre de Usuario *</label>
+                <label className="form-label">Username</label>
                 <input
                   type="text"
                   name="username"
@@ -255,7 +255,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
                   value={formData.username}
                   onChange={handleChange}
                   disabled={isLoading}
-                  placeholder="Elige un nombre de usuario"
+                  placeholder="pick a username"
                   autoComplete="username"
                 />
                 {errors.username && (
@@ -281,7 +281,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Fecha de Nacimiento *</label>
+                <label className="form-label">Date of birth</label>
                 <input
                   type="date"
                   name="dateOfBirth"
@@ -299,7 +299,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Contraseña *</label>
+                <label className="form-label">Password</label>
                 <div className="password-input-wrapper">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -308,7 +308,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
                     value={formData.password}
                     onChange={handleChange}
                     disabled={isLoading}
-                    placeholder="Crea una contraseña"
+                    placeholder="Create a new password"
                     autoComplete="new-password"
                   />
                   <button
@@ -328,7 +328,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Confirmar Contraseña *</label>
+                <label className="form-label">Confirm password</label>
                 <div className="password-input-wrapper">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
@@ -337,7 +337,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     disabled={isLoading}
-                    placeholder="Confirma tu contraseña"
+                    placeholder="Confirma your password"
                     autoComplete="new-password"
                   />
                   <button
@@ -357,7 +357,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
               </div>
 
               <div className="form-info-text">
-                <p>Al crear una cuenta, aceptas nuestros Términos de Servicio y Política de Privacidad.</p>
+                <p>By creating your account you accept our terms and conditions</p>
               </div>
             </form>
           </div>
@@ -369,7 +369,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
               onClick={() => !isLoading && onClose()}
               disabled={isLoading}
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
@@ -380,10 +380,10 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
               {isLoading ? (
                 <>
                   <span className="form-spinner"></span>
-                  Creando Cuenta...
+                  Creating your account
                 </>
               ) : (
-                'Registrarse'
+                'Register'
               )}
             </button>
           </div>
