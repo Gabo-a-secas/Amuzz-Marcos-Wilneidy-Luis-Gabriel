@@ -379,7 +379,7 @@ export const getUserPlaylistsWithGuaranteedCounts = async (token) => {
           
           // Solo usar el endpoint que funciona
           const endpoints = [
-            `https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists/${playlist.id}/songs`,
+            `https://legendary-eureka-975rxjgrgp6v3xjrr-3001.app.github.dev/api/playlists/${playlist.id}/songs`,
           ];
           
           let songs = [];

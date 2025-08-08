@@ -419,3 +419,32 @@
   }
 }
 
+
+.music-card .icon {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  padding: 14px;
+  font-size: 40px; 
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  color: white; 
+}
+
+
+.music-card .icon:hover {
+  transform: scale(1.2) rotate(5deg);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+}
+
+
+.happy .music-card .icon,
+.energic .music-card .icon,
+.random .music-card .icon { color: #b3f3d5cb; }
+
+.sad .music-card .icon { color: #8fd8f8c7; }
+.anxiety .music-card .icon { color: #fceba5c9; }
+.relax .music-card .icon { color: #6a5acd; }
+.party .music-card .icon { color: #f28cf2cf; }
+.latin .music-card .icon { color: #fca586d6; }
+
