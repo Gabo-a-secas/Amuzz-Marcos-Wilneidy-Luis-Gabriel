@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect } from "react";
 import storeReducer, { initialStore } from "../store";
+import { refreshUserSession } from "../store";
 
 export const StoreContext = createContext(null);
 
@@ -28,16 +29,19 @@ export function StoreProvider({ children }) {
   };
 
   useEffect(() => {
+  (async () => {
     const token = localStorage.getItem("token");
-    if (token) refreshPlaylists();
-  }, []);
+    if (!token) return;
 
+    const ok = await refreshUserSession(dispatch);
+    if (ok) {
+      await refreshPlaylists();
+    } else {
+    }
+  })();
+},[]);
   return (
-    <StoreContext.Provider value={{
-      store,
-      dispatch,
-      refreshPlaylists,
-    }}>
+    <StoreContext.Provider value={{ store, dispatch, refreshPlaylists }}>
       {children}
     </StoreContext.Provider>
   );

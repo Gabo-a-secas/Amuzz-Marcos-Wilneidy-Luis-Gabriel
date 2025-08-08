@@ -174,9 +174,14 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                 {error && <p className="p_viewerror">{error}</p>}
 
                 {!loading && songs.length === 0 && !error && (
-                    <p>No hay canciones en esta playlist. ¡Agrega algunas!</p>
+
+                    <div className="empty-playlist">
+                        <p>No songs on this playlist, add a new one.</p>
+                    </div>
+
                 )}
 
+                {/* ✅ NUEVA VISTA TIPO LISTA DETALLADA */}
                 {!loading && songs.length > 0 && (
                     <div className="songs-table-container">
                         <div className="songs-table-header">
