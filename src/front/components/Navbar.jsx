@@ -11,12 +11,12 @@ import useGlobalReducer from "../hooks/useGlobalReducer";
 const Navbar = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [loggedUser, setLoggedUser] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingPlaylists, setLoadingPlaylists] = useState(true);
   const { store, dispatch } = useGlobalReducer();
+  const loggedUser = store.user;
 
   const playlists = store.playlists;
 
@@ -26,7 +26,7 @@ const Navbar = () => {
 
   const handleLoginSuccess = (userData) => {
     console.log('Usuario logueado:', userData);
-    setLoggedUser(userData);
+    setShowLoginModal(false);
     setIsOpen(false);
   };
 
@@ -46,27 +46,23 @@ const Navbar = () => {
     setShowLoginModal(true);
   };
 
-  const toggleNavbar = () => {
-    setIsOpen(!isOpen);
-  };
+  const toggleNavbar = () => setIsOpen((v) => !v);
 
-  const shouldShowSidebar = !loggedUser || isOpen;
+  const shouldShowSidebar = !store.isAuthenticated || isOpen;
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token || !loggedUser) return;
+    if (!token || !store.isAuthenticated) return;
 
     const fetchPlaylists = async () => {
       setLoadingPlaylists(true);
       const data = await getUserPlaylists(token);
-      if (data) {
-        dispatch({ type: "SET_PLAYLISTS", payload: data });
-      }
+      if (data) dispatch({ type: "SET_PLAYLISTS", payload: data });
       setLoadingPlaylists(false);
     };
 
     fetchPlaylists();
-  }, [loggedUser]);
+  }, [store.isAuthenticated, dispatch]);
 
   const openPlaylistModal = (playlistId) => {
     setSelectedPlaylistId(playlistId);
