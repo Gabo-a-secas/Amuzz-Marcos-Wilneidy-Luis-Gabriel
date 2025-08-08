@@ -22,18 +22,18 @@ const NewPlaylistModal = ({ isOpen, onClose, onCreate }) => {
           <FaTimes />
         </button>
         <h2 className="newplaylist-modal-title">
-          <FaPlusCircle className="newplaylist-modal-icon" /> Nueva Playlist
+          <FaPlusCircle className="newplaylist-modal-icon" /> New playlist
         </h2>
         <form onSubmit={handleSubmit} className="newplaylist-modal-form">
           <input
             type="text"
-            placeholder="Nombre de la playlist"
+            placeholder="Name for your playlist"
             value={playlistName}
             onChange={(e) => setPlaylistName(e.target.value)}
             className="newplaylist-modal-input"
           />
           <button type="submit" className="newplaylist-modal-button">
-            Crear
+            New playlist
           </button>
         </form>
       </div>

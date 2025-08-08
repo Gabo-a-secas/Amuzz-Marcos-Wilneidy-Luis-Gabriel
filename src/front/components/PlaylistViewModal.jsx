@@ -16,7 +16,9 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
     const fetchPlaylistInfo = async () => {
         try {
             const token = localStorage.getItem("token");
+
             const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playlists`, {
+
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -54,6 +56,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                     Authorization: `Bearer ${token}`,
                 },
             });
+
 
             if (!res.ok) throw new Error("Error al traer las canciones");
 
@@ -104,6 +107,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                 url = `${import.meta.env.VITE_BACKEND_URL}/api/playlists/${playlistId}/songs/${confirmDeleteId}`;
             }
 
+
             const res = await fetch(url, {
                 method: "DELETE",
                 headers: {
@@ -151,20 +155,20 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                     <p className="playlist-description">{playlistInfo.description}</p>
                 )}
 
-                {loading && <p>Cargando canciones...</p>}
+                {loading && <p>Loading...</p>}
                 {error && <p className="p_viewerror">{error}</p>}
 
                 {!loading && songs.length === 0 && !error && (
-                    <p>No hay canciones en esta playlist.</p>
+                    <p>No songs on this playlist, add a new one.</p>
                 )}
 
                 {/* ✅ NUEVA VISTA TIPO LISTA DETALLADA */}
                 {!loading && songs.length > 0 && (
                     <div className="songs-table-container">
                         <div className="songs-table-header">
-                            <div className="song-info-column">Canción</div>
-                            <div className="song-details-column">Detalles</div>
-                            <div className="song-actions-column">Acciones</div>
+                            <div className="song-info-column">Song</div>
+                            <div className="song-details-column">Detail</div>
+                            <div className="song-actions-column">Action</div>
                         </div>
 
                         <div className="songs-list">
@@ -190,7 +194,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
 
                                     <div className="song-details-column">
                                         <div className="song-detail-row">
-                                            <span className="detail-label">Género:</span>
+                                            <span className="detail-label">Genre:</span>
                                             <span className="detail-value">
                                                 {(() => {
                                                     const g = song.genre !== undefined ? song.genre : song.genres;
@@ -210,20 +214,20 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
 
                                         </div>
                                         <div className="song-detail-row">
-                                            <span className="detail-label">Duración:</span>
+                                            <span className="detail-label">Duration:</span>
                                             <span className="detail-value">
                                                 {song.duration ? formatDuration(song.duration) : 'N/A'}
                                             </span>
                                         </div>
                                         <div className="song-detail-row">
-                                            <span className="detail-label">Año:</span>
+                                            <span className="detail-label">Release date:</span>
                                             <span className="detail-value">
                                                 {song.release_date ? new Date(song.release_date).getFullYear() : 'N/A'}
                                             </span>
                                         </div>
                                         {song.album_name && (
                                             <div className="song-detail-row">
-                                                <span className="detail-label">Álbum:</span>
+                                                <span className="detail-label">Album:</span>
                                                 <span className="detail-value">{song.album_name}</span>
                                             </div>
                                         )}
@@ -255,14 +259,14 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                     <div className="p_confirm-modal">
                         <div className="p_confirm-content">
                             <p>
-                                ¿Seguro que quieres eliminar{" "}
+                                    Sure you want to delete{" "}
                                 {confirmDeleteId === "playlist" ? "la playlist completa" : "esta canción"}?
                             </p>
                             <button onClick={handleDelete} disabled={deleting}>
                                 {deleting ? "Eliminando..." : "Sí, eliminar"}
                             </button>
                             <button onClick={() => setConfirmDeleteId(null)} disabled={deleting}>
-                                Cancelar
+                                Cancel
                             </button>
                         </div>
                     </div>

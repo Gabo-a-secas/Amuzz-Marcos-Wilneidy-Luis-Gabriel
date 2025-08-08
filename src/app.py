@@ -49,7 +49,9 @@ mail = Mail(app)
 CORS(app, resources={
     r"/*": {
         "origins": [
+
             os.getenv("FRONTEND_URL", "http://localhost:5173"),
+
             "https://*.github.dev",
             "http://localhost:*",
             

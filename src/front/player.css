@@ -6,10 +6,27 @@
   transform: translateX(-50%);
   width: 90%;
   max-width: 800px;
-  background: #000000bd;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  
+  /* En lugar del negro sólido, un gradiente oscuro que complemente tu paleta */
+  background: linear-gradient(135deg, 
+    rgba(20, 20, 30, 0.85) 0%,
+    rgba(30, 15, 40, 0.90) 25%,
+    rgba(15, 25, 35, 0.85) 50%,
+    rgba(25, 20, 45, 0.90) 75%,
+    rgba(20, 25, 30, 0.85) 100%
+  );
+  
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  
+  /* Borde sutil con tu paleta */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  
+  border-radius: 15px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -18,6 +35,7 @@
   transition: all 0.3s ease;
   gap: 15px;
 }
+
 
 .player-container.minimized {
   padding: 10px 20px;
@@ -42,7 +60,7 @@
 }
 
 .player-actions button:hover {
-  color: #beddb8;
+  color: #195, 241, 191;
 }
 
 /* ========== INFORMACIÓN DE LA CANCIÓN ========== */
@@ -106,16 +124,25 @@
   margin-bottom: 8px;
 }
 
-.main-buttons .icon {
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 5px;
+.main-buttons .icon:nth-child(2) {
+  background: linear-gradient(135deg, 
+    rgba(186, 85, 211, 0.15) 0%, 
+    rgba(138, 43, 226, 0.1) 50%, 
+    rgba(152, 192, 147, 0.15) 100%
+  );
+  border: 1px solid rgba(255, 192, 203);
   border-radius: 50%;
+  padding: 8px;
 }
 
-.main-buttons .icon:hover {
-  color: #beddb8;
-  transform: scale(1.1);
+.main-buttons .icon:nth-child(2):hover {
+  background: linear-gradient(135deg, 
+    rgba(186, 85, 211, 0.25) 0%, 
+    rgba(138, 43, 226, 0.2) 50%, 
+    rgba(152, 192, 147, 0.25) 100%
+  );
+  box-shadow: 0 0 20px rgba(255, 192, 203);
+  transform: scale(1.15);
 }
 
 /* ✨ NUEVO: Botones de navegación deshabilitados */
@@ -235,11 +262,11 @@
 }
 
 .heart-btn:hover {
-  color: #beddb8;
+  color: #ff5050;
 }
 
 .heart-btn.liked {
-  color: #ff6b6b;
+  color: #ff5050;
 }
 
 .heart-btn.liked:hover {
