@@ -37,7 +37,7 @@ const PremiumButton = () => {
 
   return (
     <button onClick={handlePayment} className="navbar-btn navbar-btn-outline">
-      Apóyanos
+      Support us
     </button>
   );
 };
