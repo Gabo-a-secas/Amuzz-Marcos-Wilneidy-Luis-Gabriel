@@ -16,7 +16,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
     const fetchPlaylistInfo = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists`, {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playlists`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -26,8 +26,10 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
 
             const playlists = await res.json();
             // Buscar la playlist específica por ID
-            const currentPlaylist = playlists.find(p => p.id === playlistId);
-            
+            const currentPlaylist = (Array.isArray(playlists) ? playlists : []).find(
+                p => p.id === Number(playlistId) 
+            );
+
             if (currentPlaylist) {
                 setPlaylistInfo(currentPlaylist);
             }
@@ -47,7 +49,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists/${playlistId}/songs`, {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playlists/${playlistId}/songs`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -97,9 +99,9 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
         try {
             let url = "";
             if (confirmDeleteId === "playlist") {
-                url = `https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists/${playlistId}`;
+                url = `${import.meta.env.VITE_BACKEND_URL}/api/playlists/${playlistId}`;
             } else {
-                url = `https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists/${playlistId}/songs/${confirmDeleteId}`;
+                url = `${import.meta.env.VITE_BACKEND_URL}/api/playlists/${playlistId}/songs/${confirmDeleteId}`;
             }
 
             const res = await fetch(url, {
@@ -112,7 +114,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
             if (!res.ok) throw new Error("Error al eliminar");
 
             if (confirmDeleteId === "playlist") {
-                onClose(); 
+                onClose();
                 refreshPlaylists();
                 notifyPlaylistRefresh('playlistModal');
             } else {
@@ -135,7 +137,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
         <div className="p_viewmodal-backdrop">
             <div className="p_viewmodal">
                 <button className="p_viewclose-button" onClick={onClose}>✖</button>
-                
+
                 {/* ✅ ACTUALIZADO: Mostrar nombre real de la playlist */}
                 <h2 className="p_viewmodal-header">
                     {playlistInfo ? playlistInfo.name : (playlistName || `Playlist #${playlistId}`)}
@@ -164,16 +166,16 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                             <div className="song-details-column">Detalles</div>
                             <div className="song-actions-column">Acciones</div>
                         </div>
-                        
+
                         <div className="songs-list">
                             {songs.map((song, index) => (
                                 <div key={song.id} className="song-item">
                                     <div className="song-info-column">
                                         <div className="song-image-container">
                                             {song.image_url ? (
-                                                <img 
-                                                    src={song.image_url} 
-                                                    alt={`${song.name} cover`} 
+                                                <img
+                                                    src={song.image_url}
+                                                    alt={`${song.name} cover`}
                                                     className="song-image"
                                                 />
                                             ) : (
@@ -185,19 +187,27 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                                             <div className="song-artist">{song.artist}</div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="song-details-column">
                                         <div className="song-detail-row">
                                             <span className="detail-label">Género:</span>
                                             <span className="detail-value">
-                                                {song.genres ? (
-                                                    typeof song.genres === 'string' 
-                                                        ? JSON.parse(song.genres).join(', ') 
-                                                        : Array.isArray(song.genres) 
-                                                            ? song.genres.join(', ')
-                                                            : 'N/A'
-                                                ) : 'N/A'}
+                                                {(() => {
+                                                    const g = song.genre !== undefined ? song.genre : song.genres;
+                                                    if (!g) return 'N/A';
+                                                    if (Array.isArray(g)) return g.join(', ');
+                                                    if (typeof g === 'string') {
+                                                        try {
+                                                            const parsed = JSON.parse(g);
+                                                            return Array.isArray(parsed) ? parsed.join(', ') : g;
+                                                        } catch {
+                                                            return g; 
+                                                        }
+                                                    }
+                                                    return 'N/A';
+                                                })()}
                                             </span>
+
                                         </div>
                                         <div className="song-detail-row">
                                             <span className="detail-label">Duración:</span>
@@ -218,17 +228,17 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                                             </div>
                                         )}
                                     </div>
-                                    
+
                                     <div className="song-actions-column">
-                                        <button 
+                                        <button
                                             className="play-button"
                                             onClick={() => playSong(song)}
                                             title="Reproducir canción"
                                         >
                                             ▶️
                                         </button>
-                                        <button 
-                                            className="p_delete-button" 
+                                        <button
+                                            className="p_delete-button"
                                             onClick={() => setConfirmDeleteId(song.id)}
                                             title="Eliminar de playlist"
                                         >
