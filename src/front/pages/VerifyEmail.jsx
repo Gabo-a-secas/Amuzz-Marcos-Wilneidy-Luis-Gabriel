@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import BackendURL from '../components/BackendURL';
+import { useNotifications } from '../NotificationProvider';
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState('verifying');
   const [message, setMessage] = useState('');
+  const { showSuccess, showError, showInfo } = useNotifications();
 
   useEffect(() => {
     const VerifyEmail = async () => {
@@ -18,7 +20,8 @@ const VerifyEmail = () => {
       if (!token) {
         console.error('❌ No se encontró token en la URL');
         setStatus('error');
-        setMessage('Invalid verification link. Please check your email and try again.');
+        setMessage('Enlace de verificación inválido. Por favor revisa tu email e intenta de nuevo.');
+        showError('Enlace de verificación inválido. Por favor revisa tu email e intenta de nuevo.');
         return;
       }
 
@@ -26,6 +29,8 @@ const VerifyEmail = () => {
       console.log('🌐 URL de verificación:', url);
 
       try {
+        showInfo('Verificando tu email...', 'Verificación en Proceso');
+        
         const response = await fetch(url, {
           method: 'GET', 
           headers: {
@@ -40,7 +45,9 @@ const VerifyEmail = () => {
 
         if (response.ok) {
           setStatus('success');
-          setMessage(data.message || 'Email verified successfully!');
+          const successMessage = data.message || '¡Email verificado exitosamente!';
+          setMessage(successMessage);
+          showSuccess(`${successMessage} 🎉 Serás redirigido al inicio en unos segundos.`, 'Verificación Exitosa');
           
           setTimeout(() => {
             navigate('/');
@@ -49,28 +56,36 @@ const VerifyEmail = () => {
           console.error('❌ Error del servidor:', data);
           setStatus('error');
           
+          let errorMessage = '';
           if (response.status === 400) {
-            setMessage(data.message || 'Invalid or expired verification link.');
+            errorMessage = data.message || 'Enlace de verificación inválido o expirado.';
           } else if (response.status === 404) {
-            setMessage('Verification endpoint not found. Please contact support.');
+            errorMessage = 'Endpoint de verificación no encontrado. Por favor contacta soporte.';
           } else {
-            setMessage(data.message || 'Verification failed. Please try again.');
+            errorMessage = data.message || 'Verificación fallida. Por favor intenta de nuevo.';
           }
+          
+          setMessage(errorMessage);
+          showError(errorMessage, 'Error de Verificación');
         }
       } catch (error) {
         console.error('❌ Network error:', error);
         setStatus('error');
         
+        let errorMessage = '';
         if (error.name === 'TypeError' && error.message.includes('fetch')) {
-          setMessage('Unable to connect to server. Please check your internet connection.');
+          errorMessage = 'No se puede conectar al servidor. Por favor verifica tu conexión a internet.';
         } else {
-          setMessage('Network error. Please try again later.');
+          errorMessage = 'Error de red. Por favor intenta de nuevo más tarde.';
         }
+        
+        setMessage(errorMessage);
+        showError(errorMessage, 'Error de Conexión');
       }
     };
 
     VerifyEmail();
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, showSuccess, showError, showInfo]);
 
   return (
     <div className="verify-email-container">
@@ -78,23 +93,23 @@ const VerifyEmail = () => {
         {status === 'verifying' && (
           <>
             <div className="verify-spinner"></div>
-            <h2>Verifying your email...</h2>
-            <p>Please wait while we verify your email address.</p>
+            <h2>Verificando tu email...</h2>
+            <p>Por favor espera mientras verificamos tu dirección de email.</p>
           </>
         )}
 
         {status === 'success' && (
           <>
             <div className="verify-icon success">✓</div>
-            <h2>Email Verified!</h2>
+            <h2>¡Email Verificado!</h2>
             <p>{message}</p>
-            <p>Redirecting to home in 3 seconds...</p>
+            <p>Redirigiendo al inicio en 3 segundos...</p>
             <button 
               className="verify-btn"
               onClick={() => navigate('/')}
               style={{ marginTop: '15px' }}
             >
-              Go to Home Now
+              Ir al Inicio Ahora
             </button>
           </>
         )}
@@ -102,7 +117,7 @@ const VerifyEmail = () => {
         {status === 'error' && (
           <>
             <div className="verify-icon error">✗</div>
-            <h2>Verification Failed</h2>
+            <h2>Error de Verificación</h2>
             <p>{message}</p>
             <div style={{ marginTop: '20px' }}>
               <button 
@@ -110,14 +125,14 @@ const VerifyEmail = () => {
                 onClick={() => navigate('/')}
                 style={{ marginRight: '10px' }}
               >
-                Go to Home
+                Ir al Inicio
               </button>
               <button 
                 className="verify-btn"
                 onClick={() => navigate('/register')}
                 style={{ backgroundColor: '#6c757d' }}
               >
-                Register Again
+                Registrarse Nuevamente
               </button>
             </div>
           </>

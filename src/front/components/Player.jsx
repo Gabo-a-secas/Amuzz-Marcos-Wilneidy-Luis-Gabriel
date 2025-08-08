@@ -2,12 +2,13 @@ import { useEffect, useRef, useCallback, memo, useState } from "react";
 import { createPortal } from "react-dom";
 import { FaPlay, FaPause, FaForward, FaBackward, FaPlus, FaHeart, FaVolumeUp, FaVolumeMute, FaExpand, FaWindowClose } from "react-icons/fa";
 import { usePlayer } from "../hooks/PlayerContext";
+import { useNotifications } from "../NotificationProvider";
 import "../player.css";
-import "../playlist-dropup.css"; // Agregar los estilos del dropup
+import "../playlist-dropup.css";
 import NewPlaylistModal from "../components/NewPlaylistModal";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { createUserPlaylist, addSongToPlaylist, getUserPlaylistsWithGuaranteedCounts } from "../store.js";
-import { notifyPlaylistSongAdded, notifyPlaylistCreated } from "../PlaylistEvents.js";
+import { notifyPlaylistSongAdded } from "../PlaylistEvents.js";
 
 export const Player = memo(({ visible, onClose }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -20,10 +21,9 @@ export const Player = memo(({ visible, onClose }) => {
   const [userPlaylists, setUserPlaylists] = useState([]);
   const [playlistsWithCounts, setPlaylistsWithCounts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  
   const { dispatch, state } = useGlobalReducer();
-
-  // Debug para verificar el estado
-  console.log("Player state:", state);
+  const { showSuccess, showError, showWarning } = useNotifications();
 
   // Event listener para sincronizar contadores cuando se agregan canciones desde otros componentes
   useEffect(() => {
@@ -74,7 +74,6 @@ export const Player = memo(({ visible, onClose }) => {
       if (token) {
         try {
           console.log("🎵 Player: Loading playlists with GUARANTEED counts...");
-          // Usar la nueva función que garantiza conteos correctos
           const playlistsWithCounts = await getUserPlaylistsWithGuaranteedCounts(token);
           console.log("🎵 Player: Playlists with guaranteed counts received:", playlistsWithCounts);
           
@@ -82,7 +81,6 @@ export const Player = memo(({ visible, onClose }) => {
             setUserPlaylists(playlistsWithCounts);
             setPlaylistsWithCounts(playlistsWithCounts);
             
-            // Debug: mostrar conteos
             playlistsWithCounts.forEach(playlist => {
               console.log(`🎵 Player: "${playlist.name}": ${playlist.songCount || 0} canciones (${playlist.hasRealCount ? 'REAL' : 'FALLBACK'})`);
             });
@@ -91,137 +89,12 @@ export const Player = memo(({ visible, onClose }) => {
           }
         } catch (error) {
           console.error("🎵 Player: Error loading playlists:", error);
+          showError("Error al cargar las playlists");
         }
       }
     };
     loadPlaylists();
-  }, []);
-
-  // Función para obtener canciones de una playlist
-  const getPlaylistSongs = async (playlistId, token) => {
-    try {
-      const response = await fetch(`http://localhost:8000/api/playlists/${playlistId}/songs`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log(`API response for playlist ${playlistId}:`, data);
-        // Asegurar que retornamos un array
-        if (Array.isArray(data)) return data;
-        if (data && data.songs && Array.isArray(data.songs)) return data.songs;
-        if (data && Array.isArray(data.data)) return data.data;
-        return [];
-      } else {
-        console.error(`Error fetching songs for playlist ${playlistId}:`, response.status);
-        return [];
-      }
-    } catch (error) {
-      console.error(`Network error fetching songs for playlist ${playlistId}:`, error);
-      return [];
-    }
-  };
-
-  // Función alternativa si la primera no funciona
-  const getPlaylistSongsAlternative = async (playlistId, token) => {
-    // Diferentes endpoints que podrían existir
-    const possibleEndpoints = [
-      `http://localhost:8000/api/playlists/${playlistId}`,
-      `http://localhost:8000/playlists/${playlistId}/songs`,
-      `http://localhost:8000/playlists/${playlistId}`,
-    ];
-
-    for (const endpoint of possibleEndpoints) {
-      try {
-        console.log(`Trying endpoint: ${endpoint}`);
-        const response = await fetch(endpoint, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log(`Success with endpoint ${endpoint}:`, data);
-          
-          // Diferentes estructuras de respuesta posibles
-          if (Array.isArray(data)) return data;
-          if (data.songs && Array.isArray(data.songs)) return data.songs;
-          if (data.data && Array.isArray(data.data)) return data.data;
-          if (data.playlist && data.playlist.songs) return data.playlist.songs;
-          
-          return [];
-        }
-      } catch (error) {
-        console.log(`Endpoint ${endpoint} failed:`, error);
-        continue;
-      }
-    }
-    
-    return [];
-  };
-
-  // Función para cargar playlists con conteo de canciones
-  const loadPlaylistsWithCounts = async (playlists, token) => {
-    setLoadingCounts(true);
-    console.log("Loading playlists with counts:", playlists);
-    
-    try {
-      const playlistsWithSongCounts = await Promise.all(
-        playlists.map(async (playlist) => {
-          try {
-            console.log(`Getting songs for playlist: ${playlist.name} (ID: ${playlist.id})`);
-            
-            // Intentar obtener canciones de la playlist
-            let songs = await getPlaylistSongs(playlist.id, token);
-            console.log(`Songs result for ${playlist.name}:`, songs);
-            
-            // Si no funciona, intentar endpoints alternativos
-            if (!songs || !Array.isArray(songs) || songs.length === 0) {
-              console.log(`Trying alternative endpoints for ${playlist.name}`);
-              songs = await getPlaylistSongsAlternative(playlist.id, token);
-            }
-            
-            // Si la playlist ya tiene songs en el objeto, usar eso como respaldo final
-            if (!songs || !Array.isArray(songs) || songs.length === 0) {
-              console.log(`Using fallback songs for ${playlist.name}:`, playlist.songs);
-              songs = playlist.songs || [];
-            }
-            
-            const songCount = Array.isArray(songs) ? songs.length : 0;
-            console.log(`Final song count for ${playlist.name}: ${songCount} (from ${songs.length} songs)`);
-            
-            return {
-              ...playlist,
-              songCount: songCount,
-              songs: songs,
-              hasRealCount: true // Marcar que este conteo es real
-            };
-          } catch (error) {
-            console.error(`Error getting songs for playlist ${playlist.name}:`, error);
-            return {
-              ...playlist,
-              songCount: playlist.songs ? playlist.songs.length : 0,
-              songs: playlist.songs || []
-            };
-          }
-        })
-      );
-      
-      console.log("Final playlists with counts:", playlistsWithSongCounts);
-      setPlaylistsWithCounts(playlistsWithSongCounts);
-    } catch (error) {
-      console.error('Error loading playlists with counts:', error);
-    } finally {
-      setLoadingCounts(false);
-    }
-  };
+  }, [showError]);
 
   const audioRef = useRef(null);
   const progressBarRef = useRef(null);
@@ -311,6 +184,7 @@ export const Player = memo(({ visible, onClose }) => {
         audio.play().catch((err) => {
           if (err.name !== "AbortError") {
             console.error("Error al reproducir audio:", err);
+            showError("Error al reproducir la canción");
             setPlaying(false);
           }
         });
@@ -341,6 +215,7 @@ export const Player = memo(({ visible, onClose }) => {
         audio.play().catch((err) => {
           if (err.name !== "AbortError") {
             console.error("Error al reproducir audio:", err);
+            showError("Error al reproducir la canción");
             setPlaying(false);
           }
         });
@@ -360,7 +235,7 @@ export const Player = memo(({ visible, onClose }) => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [track, isPlaying, setPlaying, updateProgress, handleLoadedMetadata, handleTimeUpdate]);
+  }, [track, isPlaying, setPlaying, updateProgress, handleLoadedMetadata, handleTimeUpdate, showError]);
 
   const handleSeek = useCallback((e) => {
     const audio = audioRef.current;
@@ -452,10 +327,8 @@ export const Player = memo(({ visible, onClose }) => {
 
   // Función para manejar el clic en el botón plus
   const handlePlusClick = () => {
-    // Usar playlistsWithCounts como primera opción, luego state.playlists, luego userPlaylists
     const playlists = playlistsWithCounts.length > 0 ? playlistsWithCounts : (state?.playlists || userPlaylists);
     
-    // Si hay playlists, mostrar el dropup, si no, mostrar el modal de creación
     if (playlists && playlists.length > 0) {
       setShowPlaylistDropup(!showPlaylistDropup);
     } else {
@@ -478,7 +351,7 @@ export const Player = memo(({ visible, onClose }) => {
 
     const addRes = await addSongToPlaylist(playlist.id, songData, token);
     if (addRes && addRes.ok) {
-      alert(`🎶 Canción agregada a "${playlist.name}" con éxito!`);
+      showSuccess(`Canción agregada a "${playlist.name}" con éxito! 🎶`);
       
       // Actualizar el conteo de la playlist específica
       setPlaylistsWithCounts(prevPlaylists => 
@@ -493,7 +366,7 @@ export const Player = memo(({ visible, onClose }) => {
       notifyPlaylistSongAdded(playlist.id, 'player');
       
     } else {
-      alert(`Error al agregar la canción a "${playlist.name}".`);
+      showError(`Error al agregar la canción a "${playlist.name}"`);
     }
     
     setShowPlaylistDropup(false);
@@ -504,7 +377,6 @@ export const Player = memo(({ visible, onClose }) => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        // Usar la nueva función que garantiza conteos correctos
         const playlistsWithCounts = await getUserPlaylistsWithGuaranteedCounts(token);
         
         if (playlistsWithCounts) {
@@ -514,6 +386,7 @@ export const Player = memo(({ visible, onClose }) => {
         }
       } catch (error) {
         console.error("Error refreshing playlists:", error);
+        showError("Error al refrescar las playlists");
       }
     }
   };
@@ -664,22 +537,12 @@ export const Player = memo(({ visible, onClose }) => {
           onCreate={async (name) => {
             const token = localStorage.getItem("token");
             const result = await createUserPlaylist(token, name);
-
+            
             if (result) {
               console.log("✅ Playlist creada desde player:", result);
-
-              // 🔧 FIX 1: Actualizar el estado local inmediatamente con la nueva playlist
-              const newPlaylistWithCount = {
-                ...result,
-                songCount: 0, // Inicialmente 0
-                hasRealCount: true
-              };
-
-              // Agregar la nueva playlist a ambos estados locales
-              setPlaylistsWithCounts(prev => [...prev, newPlaylistWithCount]);
-              setUserPlaylists(prev => [...prev, newPlaylistWithCount]);
-
-              // Si hay una canción reproduciéndose, agregarla a la nueva playlist
+              
+              await refreshPlaylists();
+              
               if (track) {
                 const songData = {
                   song_id: track.id,
@@ -691,48 +554,15 @@ export const Player = memo(({ visible, onClose }) => {
 
                 const addRes = await addSongToPlaylist(result.id, songData, token);
                 if (addRes && addRes.ok) {
-                  alert("🎶 Playlist creada y canción agregada con éxito!");
-
-                  // 🔧 FIX 2: Actualizar el contador a 1 después de agregar la canción
-                  setPlaylistsWithCounts(prev =>
-                    prev.map(p =>
-                      p.id === result.id
-                        ? { ...p, songCount: 1 } // Establecer en 1 porque agregamos la primera canción
-                        : p
-                    )
-                  );
-
-                  setUserPlaylists(prev =>
-                    prev.map(p =>
-                      p.id === result.id
-                        ? { ...p, songCount: 1 }
-                        : p
-                    )
-                  );
-
-                  // 🔧 FIX 3: Notificar a otros componentes
-                  notifyPlaylistSongAdded(result.id, 'player');
-
+                  showSuccess("🎶 Playlist creada y canción agregada con éxito!");
                 } else {
-                  alert("Playlist creada, pero error al añadir la canción.");
-                  // Si falló agregar la canción, mantener el contador en 0
+                  showWarning("Playlist creada, pero error al añadir la canción");
                 }
               }
-
-              // 🔧 FIX 4: Refrescar para sincronizar con el backend (al final)
-              await refreshPlaylists();
-
-              const finalPlaylist = {
-                ...result,
-                songCount: track ? 1 : 0,
-                hasRealCount: true
-              };
-              console.log("🎵 Player: Notifying playlist created:", finalPlaylist);
-              notifyPlaylistCreated(finalPlaylist, 'player')
-
+              
               setShowModal(false);
             } else {
-              alert("No se pudo crear la playlist.");
+              showError("No se pudo crear la playlist");
             }
           }}
         />,
