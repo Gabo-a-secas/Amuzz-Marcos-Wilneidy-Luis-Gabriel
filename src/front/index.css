@@ -251,7 +251,6 @@ footer {
 .mood-btn:nth-child(7) { animation-delay: 0.7s; }
 .mood-btn:nth-child(8) { animation-delay: 0.8s; }
 
-
 .title {
   background: none;
   border: none;
@@ -283,6 +282,7 @@ footer {
   filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3))
           drop-shadow(0 0 25px rgba(186, 85, 211, 0.2));
   transition: all 0.4s ease;
+
   animation: fadeInDown 1s ease-out 0.3s both, 
              gradientShift 6s ease-in-out infinite 2s;
 }
@@ -317,7 +317,6 @@ footer {
           drop-shadow(0 0 30px rgba(186, 85, 211, 0.4))
           drop-shadow(0 0 40px rgba(255, 192, 203, 0.3));
 }
-
 @media (max-width: 768px) {
   .title {
     font-size: 3rem;

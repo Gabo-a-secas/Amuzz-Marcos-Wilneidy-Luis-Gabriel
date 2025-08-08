@@ -177,7 +177,9 @@ const Navbar = () => {
                           state={{ moodObj: { mood: 'anxiety', label: 'Ansioso' } }}
                           className="navbar-dropdown-link"
                         >
+
                           ⚡ On Edge
+                          
                         </Link>
                       </li>
                       <li className="navbar-dropdown-item">
@@ -205,6 +207,7 @@ const Navbar = () => {
                           className="navbar-dropdown-link"
                         >
                           🌶️ Son Latino
+                          
                         </Link>
                       </li>
                       <li className="navbar-dropdown-item">

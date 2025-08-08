@@ -26,7 +26,33 @@ export const notifyPlaylistCreated = (playlist, source = 'unknown') => {
   console.log(`Notifying playlist created: ${playlist.name} from ${source}`);
   window.dispatchEvent(new CustomEvent('playlistUpdated', {
     detail: { 
-      playlist, 
+      playlist: {
+        ...playlist,
+        songCount: playlist.songCount || 0,
+        hasRealCount: true
+      }, 
+      action: 'playlist_created',
+      source,
+      timestamp: Date.now()
+    }
+  }));
+};
+
+/**
+ * 🔧 NEW: Disparar evento cuando se crea una nueva playlist con datos completos
+ * @param {object} playlist - La playlist creada con toda su información
+ * @param {string} source - Componente que disparó el evento
+ * @param {number} initialSongCount - Número inicial de canciones (0 o 1)
+ */
+export const notifyPlaylistCreatedWithData = (playlist, source = 'unknown', initialSongCount = 0) => {
+  console.log(`Notifying playlist created with data: ${playlist.name} from ${source} with ${initialSongCount} songs`);
+  window.dispatchEvent(new CustomEvent('playlistUpdated', {
+    detail: { 
+      playlist: {
+        ...playlist,
+        songCount: initialSongCount,
+        hasRealCount: true
+      }, 
       action: 'playlist_created',
       source,
       timestamp: Date.now()
@@ -99,4 +125,43 @@ export const notifyPlaylistUpdated = (playlistId, source = 'unknown') => {
       timestamp: Date.now()
     }
   }));
+};
+
+/**
+ * 🔧 NEW: Disparar evento cuando se crea una playlist Y se agrega una canción en una sola operación
+ * @param {object} playlist - La playlist creada
+ * @param {string} source - Componente que disparó el evento
+ */
+export const notifyPlaylistCreatedWithSong = (playlist, source = 'unknown') => {
+  console.log(`Notifying playlist created with song: ${playlist.name} from ${source}`);
+  window.dispatchEvent(new CustomEvent('playlistUpdated', {
+    detail: { 
+      playlist: {
+        ...playlist,
+        songCount: 1, // Ya tiene una canción
+        hasRealCount: true
+      }, 
+      action: 'playlist_created_with_song',
+      source,
+      timestamp: Date.now()
+    }
+  }));
+};
+
+/**
+ * 🔧 NEW: Disparar múltiples eventos en secuencia para operaciones complejas
+ * @param {object} playlist - La playlist creada
+ * @param {boolean} hasSong - Si se agregó una canción
+ * @param {string} source - Componente que disparó el evento
+ */
+export const notifyPlaylistCompleteOperation = (playlist, hasSong = false, source = 'unknown') => {
+  // Primero notificar la creación
+  notifyPlaylistCreated(playlist, source);
+  
+  // Luego, si se agregó una canción, notificar eso también
+  if (hasSong) {
+    setTimeout(() => {
+      notifyPlaylistSongAdded(playlist.id, source);
+    }, 100); // Pequeño delay para asegurar el orden
+  }
 };
