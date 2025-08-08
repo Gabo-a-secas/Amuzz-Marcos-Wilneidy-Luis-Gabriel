@@ -18,8 +18,6 @@
   
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  
-  /* Borde sutil con tu paleta */
   border: 1px solid rgba(255, 255, 255, 0.15);
   
   border-radius: 15px;
@@ -91,7 +89,6 @@
   margin: 0;
 }
 
-/* ✨ NUEVO: Indicador de posición en playlist */
 .playlist-position {
   font-size: 0.8em;
   color: #beddb8;

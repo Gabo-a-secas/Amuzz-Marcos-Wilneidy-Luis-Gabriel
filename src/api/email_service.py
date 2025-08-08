@@ -12,7 +12,7 @@ def send_verification_email(user):
             print("❌ No hay token generado")
             return False
         
-        frontend_url = os.getenv('FRONTEND_URL', 'https://urban-rotary-phone-pjwx7g97pjwqh967g-3000.app.github.dev')
+        frontend_url = os.getenv('FRONTEND_URL', 'https://legendary-eureka-975rxjgrgp6v3xjrr-3000.app.github.dev')
 
         verification_url = f"{frontend_url.rstrip('/')}/verify-email?token={token}"
         
