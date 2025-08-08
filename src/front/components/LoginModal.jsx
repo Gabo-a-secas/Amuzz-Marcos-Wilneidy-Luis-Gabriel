@@ -2,10 +2,12 @@ import { useState, useContext } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import BackendURL from './BackendURL';
 import { StoreContext } from "../hooks/useGlobalReducer";
+import { useNotifications } from '../NotificationProvider';
 import EmailVerificationBanner from './EmailVerificationBanner';
 
 const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
   const { dispatch } = useContext(StoreContext);
+  const { showSuccess, showError, showWarning } = useNotifications();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -43,13 +45,13 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'El email es requerido';
     } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = 'Por favor ingresa un email válido';
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'La contraseña es requerida';
     }
 
     setErrors(newErrors);
@@ -87,6 +89,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
         }
 
         console.log('✅ Login exitoso para:', user.email);
+        showSuccess(`¡Bienvenido de vuelta, ${user.username || user.email}! 🎵`);
         setFormData({ email: '', password: '' });
         onClose();
       } else {
@@ -96,20 +99,24 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
           console.log('📧 Email no verificado, mostrando banner');
           setNeedsVerification(true);
           setUnverifiedEmail(data.email || formData.email);
+          showWarning('Por favor verifica tu email antes de iniciar sesión');
           setErrors({
-            general: data.message || 'Please verify your email before logging in.'
+            general: data.message || 'Por favor verifica tu email antes de iniciar sesión.'
           });
         } else if (response.status === 401) {
+          showError('Email o contraseña incorrectos. Verifica tus credenciales.');
           setErrors({
-            general: 'Invalid email or password. Please check your credentials.'
+            general: 'Email o contraseña incorrectos. Verifica tus credenciales.'
           });
         } else if (response.status === 404) {
+          showError('Usuario no encontrado. Verifica tu email o regístrate.');
           setErrors({
-            general: 'User not found. Please check your email or register.'
+            general: 'Usuario no encontrado. Verifica tu email o regístrate.'
           });
         } else {
+          showError(data.message || 'Error en el login. Intenta de nuevo.');
           setErrors({
-            general: data.message || 'Login failed. Please try again.'
+            general: data.message || 'Error en el login. Intenta de nuevo.'
           });
         }
       }
@@ -117,12 +124,14 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
       console.error('❌ Error de red en login:', error);
       
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        showError('No se puede conectar al servidor. Verifica tu conexión a internet.');
         setErrors({ 
-          general: 'Unable to connect to server. Please check your internet connection.' 
+          general: 'No se puede conectar al servidor. Verifica tu conexión a internet.' 
         });
       } else {
+        showError('Error de red. Verifica tu conexión e intenta de nuevo.');
         setErrors({ 
-          general: 'Network error. Please check your connection and try again.' 
+          general: 'Error de red. Verifica tu conexión e intenta de nuevo.' 
         });
       }
     } finally {
@@ -147,6 +156,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
   const handleResendEmail = (success) => {
     if (success) {
       console.log('📧 Email de verificación reenviado');
+      showSuccess('Email de verificación enviado correctamente');
     }
   };
 
@@ -155,18 +165,22 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
     setUnverifiedEmail('');
   };
 
+  const handleForgotPassword = () => {
+    showWarning('La funcionalidad de recuperar contraseña estará disponible pronto. 🚧');
+  };
+
   return (
     <div className="modal-backdrop" onClick={handleBackdropClick}>
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Login</h5>
+            <h5 className="modal-title">Iniciar Sesión</h5>
             <button
               type="button"
               className="modal-close-btn"
               onClick={handleClose}
               disabled={isLoading}
-              aria-label="Close"
+              aria-label="Cerrar"
             />
           </div>
 
@@ -195,7 +209,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
                   value={formData.email}
                   onChange={handleChange}
                   disabled={isLoading}
-                  placeholder="Enter your email"
+                  placeholder="Ingresa tu email"
                   autoComplete="email"
                   autoFocus
                 />
@@ -203,7 +217,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Password</label>
+                <label className="form-label">Contraseña</label>
                 <div className="password-input-wrapper">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -212,7 +226,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
                     value={formData.password}
                     onChange={handleChange}
                     disabled={isLoading}
-                    placeholder="Enter your password"
+                    placeholder="Ingresa tu contraseña"
                     autoComplete="current-password"
                   />
                   <button
@@ -220,7 +234,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
                     className="password-toggle-btn"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -234,10 +248,10 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
                   className="form-link"
                   onClick={(e) => {
                     e.preventDefault();
-                    alert('Forgot password functionality coming soon!');
+                    handleForgotPassword();
                   }}
                 >
-                  Forgot your password?
+                  ¿Olvidaste tu contraseña?
                 </a>
               </div>
             </form>
@@ -250,7 +264,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
               onClick={handleClose} 
               disabled={isLoading}
             >
-              Cancel
+              Cancelar
             </button>
             <button 
               type="submit" 
@@ -260,16 +274,16 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
             >
               {isLoading ? (
                 <>
-                  <span className="form-spinner" /> Logging in...
+                  <span className="form-spinner" /> Iniciando sesión...
                 </>
               ) : (
-                'Login'
+                'Iniciar Sesión'
               )}
             </button>
           </div>
 
           <div className="modal-divider">
-            <span>Don't have an account?</span>
+            <span>¿No tienes una cuenta?</span>
           </div>
 
           <div className="modal-footer-secondary">
@@ -279,7 +293,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
               onClick={() => onSwitchToRegister && onSwitchToRegister()}
               disabled={isLoading}
             >
-              Register
+              Registrarse
             </button>
           </div>
         </div>

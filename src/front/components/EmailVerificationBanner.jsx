@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import BackendURL from './BackendURL';
+import { useNotifications } from '../NotificationProvider';
 
 const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState(''); 
+  const { showSuccess, showError, showWarning, showInfo } = useNotifications();
 
   useEffect(() => {
     if (resendCooldown > 0) {
@@ -14,29 +14,13 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
     }
   }, [resendCooldown]);
 
-  useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => {
-        setMessage('');
-        setMessageType('');
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [message]);
-
-  const showMessage = (msg, type) => {
-    setMessage(msg);
-    setMessageType(type);
-  };
-
   const handleResend = async () => {
     if (!email) {
-      showMessage('Email address is required', 'error');
+      showError('Se requiere una dirección de email', 'Error');
       return;
     }
 
     setIsResending(true);
-    setMessage(''); 
     
     console.log('🔄 Reenviando email de verificación para:', email);
 
@@ -53,7 +37,10 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
       console.log('📡 Respuesta del servidor:', data);
 
       if (response.ok) {
-        showMessage(data.message || 'Verification email sent! Please check your inbox.', 'success');
+        showSuccess(
+          `📧 Email de verificación enviado a ${email}. Revisa tu bandeja de entrada.`,
+          'Email Enviado'
+        );
         setResendCooldown(60);
         
         if (onResendEmail) {
@@ -61,13 +48,13 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
         }
       } else {
         if (response.status === 400) {
-          showMessage(data.message || 'Invalid email address', 'error');
+          showError(data.message || 'Dirección de email inválida', 'Error');
         } else if (response.status === 404) {
-          showMessage('User not found. Please register again.', 'error');
+          showError('Usuario no encontrado. Por favor regístrate nuevamente.', 'Usuario No Encontrado');
         } else if (response.status === 409) {
-          showMessage('Email already verified', 'success');
+          showSuccess('El email ya está verificado', 'Email Ya Verificado');
         } else {
-          showMessage(data.message || 'Failed to resend email. Please try again later.', 'error');
+          showError(data.message || 'Error al reenviar email. Intenta de nuevo más tarde.', 'Error de Envío');
         }
         
         if (onResendEmail) {
@@ -78,9 +65,9 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
       console.error('❌ Error de red:', error);
       
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        showMessage('Unable to connect to server. Please check your internet connection.', 'error');
+        showError('No se puede conectar al servidor. Verifica tu conexión a internet.', 'Error de Conexión');
       } else {
-        showMessage('Network error. Please check your connection and try again.', 'error');
+        showError('Error de red. Verifica tu conexión e intenta de nuevo.', 'Error de Red');
       }
       
       if (onResendEmail) {
@@ -102,15 +89,10 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
       <div className="verification-content">
         <span className="verification-icon">✉️</span>
         <div className="verification-text">
-          <p className="verification-title">Verify your email address</p>
+          <p className="verification-title">Verifica tu dirección de email</p>
           <p className="verification-subtitle">
-            We've sent a verification email to <strong>{email}</strong>
+            Te hemos enviado un email de verificación a <strong>{email}</strong>
           </p>
-          {message && (
-            <p className={`verification-message ${messageType}`}>
-              {messageType === 'success' ? '✅' : '❌'} {message}
-            </p>
-          )}
         </div>
         <div className="verification-actions">
           <button
@@ -120,19 +102,19 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
           >
             {isResending ? (
               <>
-                <span className="spinner">🔄</span> Sending...
+                <span className="spinner">🔄</span> Enviando...
               </>
             ) : resendCooldown > 0 ? (
-              `Resend in ${resendCooldown}s`
+              `Reenviar en ${resendCooldown}s`
             ) : (
-              'Resend email'
+              'Reenviar email'
             )}
           </button>
           {onClose && (
             <button
               className="verification-close-btn"
               onClick={handleClose}
-              title="Close banner"
+              title="Cerrar banner"
             >
               ✕
             </button>
