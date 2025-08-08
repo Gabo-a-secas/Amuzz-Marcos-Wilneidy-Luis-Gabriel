@@ -560,7 +560,7 @@ export const Player = memo(({ visible, onClose }) => {
               })() && (
                 <div className="playlist-dropup">
                   <div className="playlist-dropup-header">
-                    <span>Agregar a playlist</span>
+                    <span>Add to playlist</span>
                     <button 
                       className="create-new-playlist-btn"
                       onClick={() => {
@@ -568,7 +568,7 @@ export const Player = memo(({ visible, onClose }) => {
                         setShowModal(true);
                       }}
                     >
-                      + Nueva playlist
+                      + New playlist
                     </button>
                   </div>
                   <div className="playlist-dropup-list">

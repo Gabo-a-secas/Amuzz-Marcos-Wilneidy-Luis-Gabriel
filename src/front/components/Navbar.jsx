@@ -128,11 +128,11 @@ const Navbar = () => {
 
                 <li className="navbar-nav-item">
                   <details className="navbar-dropdown">
-                    <summary className="navbar-btn navbar-btn-outline">Mis Playlists</summary>
+                    <summary className="navbar-btn navbar-btn-outline">Playlists</summary>
                     <ul className="navbar-dropdown-list">
-                      {loadingPlaylists && <li className="navbar-dropdown-item">Cargando...</li>}
+                      {loadingPlaylists && <li className="navbar-dropdown-item">Loading...</li>}
                       {!loadingPlaylists && playlists.length === 0 && (
-                        <li className="navbar-dropdown-item">No tienes playlists</li>
+                        <li className="navbar-dropdown-item">Add a new playlist</li>
                       )}
                       {!loadingPlaylists &&
                         playlists.map((playlist) => (
@@ -159,7 +159,7 @@ const Navbar = () => {
                           state={{ moodObj: { mood: 'happy', label: 'Feliz' } }}
                           className="navbar-dropdown-link"
                         >
-                          🎉 Joyride
+                          ✨ Joyride
                         </Link>
                       </li>
                       <li className="navbar-dropdown-item">
@@ -186,7 +186,7 @@ const Navbar = () => {
                           state={{ moodObj: { mood: 'party', label: 'Fiesta' } }}
                           className="navbar-dropdown-link"
                         >
-                          🕺 Groove
+                          🪩 Groove
                         </Link>
                       </li>
                       <li className="navbar-dropdown-item">
@@ -195,7 +195,7 @@ const Navbar = () => {
                           state={{ moodObj: { mood: 'relax', label: 'Relajado' } }}
                           className="navbar-dropdown-link"
                         >
-                          🌊 Stay Mellow
+                          🍃 Stay Mellow
                         </Link>
                       </li>
                       <li className="navbar-dropdown-item">
