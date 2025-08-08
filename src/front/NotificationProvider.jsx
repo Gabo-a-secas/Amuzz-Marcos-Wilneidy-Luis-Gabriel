@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import './Notifications.css';
 
@@ -6,6 +6,7 @@ const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
+  const timeoutsRef = useRef(new Map());
 
   const addNotification = useCallback((notification) => {
     const id = Date.now() + Math.random();
@@ -20,15 +21,26 @@ export const NotificationProvider = ({ children }) => {
 
     setNotifications(prev => [...prev, newNotification]);
 
-    // Auto remove after duration
-    setTimeout(() => {
-      removeNotification(id);
-    }, newNotification.duration);
+    // Auto remove after duration (solo si no es confirm)
+    if (newNotification.type !== 'confirm' && newNotification.duration > 0) {
+      const timeoutId = setTimeout(() => {
+        removeNotification(id);
+      }, newNotification.duration);
+      
+      timeoutsRef.current.set(id, timeoutId);
+    }
 
     return id;
   }, []);
 
   const removeNotification = useCallback((id) => {
+    // Limpiar timeout si existe
+    const timeoutId = timeoutsRef.current.get(id);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutsRef.current.delete(id);
+    }
+    
     setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
 
