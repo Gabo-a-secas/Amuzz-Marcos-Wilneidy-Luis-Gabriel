@@ -180,16 +180,106 @@ export async function getUserPlaylists(token) {
   }
 }
 
+// 🔧 FUNCIÓN CORREGIDA: addSongToPlaylist
 export async function addSongToPlaylist(playlistId, songData, token) {
   try {
+    console.log("🔧 addSongToPlaylist - Datos originales:", songData);
+    
+    // 🔧 VALIDAR datos requeridos primero
+    if (!playlistId) {
+      throw new Error("playlistId es requerido");
+    }
+    if (!songData) {
+      throw new Error("songData es requerido");
+    }
+    if (!token) {
+      throw new Error("token es requerido");
+    }
+
+    // 🔧 LIMPIAR y estructurar datos correctamente
     const completeSongData = {
-      ...songData,
-      genre: Array.isArray(songData.genre)
-        ? JSON.stringify(songData.genre)
-        : songData.genre ?? null,
-      duration: songData.duration ?? null,
-      release_date: songData.release_date ?? null,
+      // ✅ Campos requeridos por el backend
+      song_id: songData.song_id || songData.id,
+      name: songData.name,
+      artist: songData.artist,
+      audio_url: songData.audio_url || songData.audio,
+      image_url: songData.image_url || songData.image,
+      
+      // ✅ Campos opcionales con valores por defecto seguros
+      duration: songData.duration && !isNaN(songData.duration) ? Number(songData.duration) : null,
+      
+      // 🔧 MANEJAR géneros correctamente
+      genre: (() => {
+        if (!songData.genre && !songData.genres) return null;
+        
+        const genreData = songData.genre || songData.genres;
+        
+        // Si ya es string, devolverlo tal como está
+        if (typeof genreData === 'string') {
+          // Si parece ser JSON, validarlo
+          try {
+            JSON.parse(genreData);
+            return genreData; // Ya es JSON válido
+          } catch {
+            return JSON.stringify([genreData]); // Convertir string simple a array JSON
+          }
+        }
+        
+        // Si es array, convertir a JSON
+        if (Array.isArray(genreData)) {
+          return JSON.stringify(genreData);
+        }
+        
+        return null;
+      })(),
+      
+      // 🔧 MANEJAR fecha correctamente
+      release_date: (() => {
+        if (!songData.release_date) return null;
+        
+        // Si ya es una fecha válida, mantenerla
+        if (songData.release_date instanceof Date) {
+          return songData.release_date.toISOString();
+        }
+        
+        // Si es string, validar que sea una fecha válida
+        if (typeof songData.release_date === 'string') {
+          const date = new Date(songData.release_date);
+          return !isNaN(date.getTime()) ? songData.release_date : null;
+        }
+        
+        return null;
+      })(),
+      
+      // ✅ Campos adicionales opcionales
+      album_name: songData.album_name || null,
+      waveform: songData.waveform || null,
     };
+
+    console.log("🔧 addSongToPlaylist - Datos procesados:", completeSongData);
+
+    // 🔧 VALIDAR campos críticos antes del envío
+    if (!completeSongData.song_id) {
+      console.error("❌ song_id faltante:", { original: songData, processed: completeSongData });
+      throw new Error("song_id es requerido pero no se encontró en los datos");
+    }
+    
+    if (!completeSongData.name) {
+      console.error("❌ name faltante:", { original: songData, processed: completeSongData });
+      throw new Error("name es requerido pero no se encontró en los datos");
+    }
+    
+    if (!completeSongData.artist) {
+      console.error("❌ artist faltante:", { original: songData, processed: completeSongData });
+      throw new Error("artist es requerido pero no se encontró en los datos");
+    }
+    
+    if (!completeSongData.audio_url) {
+      console.error("❌ audio_url faltante:", { original: songData, processed: completeSongData });
+      throw new Error("audio_url es requerido pero no se encontró en los datos");
+    }
+
+    console.log(`🔧 Enviando request a: ${import.meta.env.VITE_BACKEND_URL}/api/playlists/${playlistId}/songs`);
 
     const response = await fetch(
       `${import.meta.env.VITE_BACKEND_URL}/api/playlists/${playlistId}/songs`,
@@ -203,16 +293,53 @@ export async function addSongToPlaylist(playlistId, songData, token) {
       }
     );
 
+    console.log("🔧 Response status:", response.status);
+    console.log("🔧 Response headers:", Object.fromEntries(response.headers.entries()));
+
+    // 🔧 MANEJAR respuestas de error con más detalle
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}`;
+      
+      try {
+        const errorData = await response.text(); // Usar text() en lugar de json() para capturar cualquier respuesta
+        console.error("❌ Error del servidor:", errorData);
+        
+        // Intentar parsear como JSON si es posible
+        try {
+          const parsedError = JSON.parse(errorData);
+          errorMessage = parsedError.message || parsedError.error || errorData;
+        } catch {
+          errorMessage = errorData || errorMessage;
+        }
+      } catch (parseError) {
+        console.error("❌ No se pudo leer la respuesta de error:", parseError);
+      }
+      
+      throw new Error(`Error del servidor: ${errorMessage}`);
+    }
+
     const result = await response.json();
-    return { ok: response.ok, result };
+    console.log("✅ addSongToPlaylist - Éxito:", result);
+    
+    return { ok: true, result };
+    
   } catch (error) {
-    console.error("Error al agregar canción:", error);
-    return { ok: false, result: null };
+    console.error("❌ Error en addSongToPlaylist:", error);
+    console.error("❌ Stack trace:", error.stack);
+    
+    // 🔧 PROPORCIONAR información útil para debugging
+    console.error("❌ Debugging info:", {
+      playlistId,
+      songData,
+      hasToken: !!token,
+      backendUrl: import.meta.env.VITE_BACKEND_URL
+    });
+    
+    return { ok: false, result: null, error: error.message };
   }
 }
 
-
-// Agregar estas funciones al store.js
+// Resto de las funciones sin cambios...
 
 /**
  * Obtener canciones de una playlist específica
@@ -371,8 +498,6 @@ export const getUserPlaylistsWithSongCounts = async (token) => {
     return [];
   }
 };
-
-// Agregar esta función mejorada al store.js
 
 /**
  * Obtener playlists del usuario con conteo GARANTIZADO de canciones

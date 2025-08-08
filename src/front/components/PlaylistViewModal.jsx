@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { useNotifications } from "../NotificationProvider";
 import "../PlaylistViewModal.css";
 import useGlobalReducer from "../hooks/useGlobalReducer";
-import { usePlayer } from "../hooks/PlayerContext"; // ✅ AGREGAR
 import { notifyPlaylistSongRemoved, notifyPlaylistRefresh } from "../PlaylistEvents.js";
 
 const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
@@ -12,15 +12,13 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const [deleting, setDeleting] = useState(false);
     const { refreshPlaylists } = useGlobalReducer();
-    const { openPlayer } = usePlayer(); // ✅ USAR EL CONTEXTO DEL PLAYER
+    const { showSuccess, showError, showConfirm } = useNotifications();
 
-    // ✅ NUEVA FUNCIÓN: Obtener info de la playlist
     const fetchPlaylistInfo = async () => {
         try {
             const token = localStorage.getItem("token");
 
             const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playlists`, {
-
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -29,7 +27,6 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
             if (!res.ok) throw new Error("Error al traer playlists");
 
             const playlists = await res.json();
-            // Buscar la playlist específica por ID
             const currentPlaylist = (Array.isArray(playlists) ? playlists : []).find(
                 p => p.id === Number(playlistId) 
             );
@@ -39,12 +36,10 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
             }
         } catch (err) {
             console.error("Error al obtener info de playlist:", err);
-            // Si falla, mantenemos el nombre que viene por props
             setPlaylistInfo({ name: playlistName || `Playlist #${playlistId}` });
         }
     };
 
-    // ✅ FUNCIÓN ACTUALIZADA: Obtener canciones
     const fetchSongs = async () => {
         if (!playlistId || !isOpen) return;
 
@@ -59,7 +54,6 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                 },
             });
 
-
             if (!res.ok) throw new Error("Error al traer las canciones");
 
             const data = await res.json();
@@ -67,6 +61,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
         } catch (err) {
             setError(err.message);
             setSongs([]);
+            showError("Error al cargar las canciones de la playlist");
         } finally {
             setLoading(false);
         }
@@ -74,13 +69,11 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
 
     useEffect(() => {
         if (isOpen && playlistId) {
-            // ✅ ACTUALIZADO: Traer tanto la info de playlist como las canciones
             fetchPlaylistInfo();
             fetchSongs();
         }
     }, [playlistId, isOpen]);
 
-    // ✅ NUEVA FUNCIÓN: Formatear duración de segundos a mm:ss
     const formatDuration = (seconds) => {
         if (!seconds || seconds === 0) return '0:00';
         const mins = Math.floor(seconds / 60);
@@ -88,44 +81,9 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // ✅ FUNCIÓN ACTUALIZADA: Reproducir una canción específica con el player real
-    const playSong = (selectedSong, songIndex) => {
-        console.log('🎵 PlaylistModal: Reproducir canción:', selectedSong);
-        
-        // Convertir la canción seleccionada al formato que espera el player
-        const trackData = {
-            id: selectedSong.song_id || selectedSong.id,
-            name: selectedSong.name,
-            artist: selectedSong.artist,
-            audio: selectedSong.audio_url || selectedSong.audio,
-            image: selectedSong.image_url || selectedSong.image,
-            duration: selectedSong.duration,
-            genre: selectedSong.genres,
-            album_name: selectedSong.album_name,
-            release_date: selectedSong.release_date,
-            waveform: selectedSong.waveform,
-            genres: selectedSong.genres,
-        };
-
-        // Convertir toda la playlist al formato que espera el player
-        const playlistData = songs.map(song => ({
-            id: song.song_id || song.id,
-            name: song.name,
-            artist: song.artist,
-            audio: song.audio_url || song.audio,
-            image: song.image_url || song.image,
-            duration: song.duration,
-            genre: song.genres,
-            album_name: song.album_name,
-            release_date: song.release_date,
-            waveform: song.waveform,
-            genres: song.genres,
-        }));
-
-        console.log('🎵 PlaylistModal: Opening player with:', { trackData, playlistData });
-        
-        // Usar el contexto del player para abrir el reproductor
-        openPlayer(trackData, playlistData);
+    const playSong = (song) => {
+        console.log('Reproducir canción:', song);
+        showSuccess(`Reproduciendo: ${song.name} - ${song.artist}`);
     };
 
     const handleDelete = async () => {
@@ -142,7 +100,6 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                 url = `${import.meta.env.VITE_BACKEND_URL}/api/playlists/${playlistId}/songs/${confirmDeleteId}`;
             }
 
-
             const res = await fetch(url, {
                 method: "DELETE",
                 headers: {
@@ -153,23 +110,43 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
             if (!res.ok) throw new Error("Error al eliminar");
 
             if (confirmDeleteId === "playlist") {
+                showSuccess("Playlist eliminada con éxito");
                 onClose();
                 refreshPlaylists();
                 notifyPlaylistRefresh('playlistModal');
             } else {
-                // Actualizar la lista local de canciones
+                const songName = songs.find(s => s.id === confirmDeleteId)?.name || "la canción";
+                showSuccess(`"${songName}" eliminada de la playlist`);
                 setSongs(prev => prev.filter(song => song.id !== confirmDeleteId));
-                // Notificar a otros componentes que se eliminó una canción
                 notifyPlaylistSongRemoved(playlistId, 'playlistModal');
-                console.log(`🎵 PlaylistModal: Song removed from playlist ${playlistId}`);
+                console.log(`Song removed from playlist ${playlistId}`);
             }
 
             setConfirmDeleteId(null);
         } catch (err) {
-            alert("Error: " + err.message);
+            showError("Error al eliminar: " + err.message);
         } finally {
             setDeleting(false);
         }
+    };
+
+    const confirmDelete = (id, itemName) => {
+        const isPlaylist = id === "playlist";
+        const message = isPlaylist 
+            ? `¿Estás seguro de que quieres eliminar la playlist completa "${playlistInfo?.name || 'esta playlist'}"? Esta acción no se puede deshacer.`
+            : `¿Estás seguro de que quieres eliminar "${itemName}" de la playlist?`;
+        
+        showConfirm(
+            message,
+            isPlaylist ? "Eliminar Playlist" : "Eliminar Canción",
+            () => {
+                setConfirmDeleteId(id);
+                handleDelete();
+            },
+            () => {
+                // No hacer nada si cancela
+            }
+        );
     };
 
     if (!isOpen) return null;
@@ -179,49 +156,39 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
             <div className="p_viewmodal">
                 <button className="p_viewclose-button" onClick={onClose}>✖</button>
 
-                {/* ✅ ACTUALIZADO: Mostrar nombre real de la playlist */}
                 <h2 className="p_viewmodal-header">
                     {playlistInfo ? playlistInfo.name : (playlistName || `Playlist #${playlistId}`)}
-                    <button className="p_delete-playlist-button" onClick={() => setConfirmDeleteId("playlist")}>
-                        🗑️
+                    <button 
+                        className="p_delete-playlist-button" 
+                        onClick={() => confirmDelete("playlist", playlistInfo?.name)}
+                    >
+                        🗑️ Eliminar Playlist
                     </button>
                 </h2>
 
-                {/* ✅ MOSTRAR CONTADOR DE CANCIONES */}
-                {songs.length > 0 && (
-                    <p className="playlist-song-count">
-                        {songs.length} {songs.length === 1 ? 'canción' : 'canciones'}
-                    </p>
-                )}
-
-                {/* ✅ OPCIONAL: Mostrar descripción si existe */}
                 {playlistInfo?.description && (
                     <p className="playlist-description">{playlistInfo.description}</p>
                 )}
 
-                {loading && <p>Loading...</p>}
+                {loading && <p>Cargando canciones...</p>}
                 {error && <p className="p_viewerror">{error}</p>}
 
                 {!loading && songs.length === 0 && !error && (
-                    <p>No songs on this playlist, add a new one.</p>
+                    <p>No hay canciones en esta playlist. ¡Agrega algunas!</p>
                 )}
 
-                {/* ✅ NUEVA VISTA TIPO LISTA DETALLADA */}
                 {!loading && songs.length > 0 && (
                     <div className="songs-table-container">
                         <div className="songs-table-header">
-                            <div className="song-info-column">Song</div>
-                            <div className="song-details-column">Detail</div>
-                            <div className="song-actions-column">Action</div>
+                            <div className="song-info-column">Canción</div>
+                            <div className="song-details-column">Detalles</div>
+                            <div className="song-actions-column">Acciones</div>
                         </div>
 
                         <div className="songs-list">
                             {songs.map((song, index) => (
                                 <div key={song.id} className="song-item">
                                     <div className="song-info-column">
-                                        <div className="song-number">
-                                            {index + 1}
-                                        </div>
                                         <div className="song-image-container">
                                             {song.image_url ? (
                                                 <img
@@ -241,7 +208,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
 
                                     <div className="song-details-column">
                                         <div className="song-detail-row">
-                                            <span className="detail-label">Genre:</span>
+                                            <span className="detail-label">Género:</span>
                                             <span className="detail-value">
                                                 {(() => {
                                                     const g = song.genre !== undefined ? song.genre : song.genres;
@@ -258,23 +225,22 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                                                     return 'N/A';
                                                 })()}
                                             </span>
-
                                         </div>
                                         <div className="song-detail-row">
-                                            <span className="detail-label">Duration:</span>
+                                            <span className="detail-label">Duración:</span>
                                             <span className="detail-value">
                                                 {song.duration ? formatDuration(song.duration) : 'N/A'}
                                             </span>
                                         </div>
                                         <div className="song-detail-row">
-                                            <span className="detail-label">Release date:</span>
+                                            <span className="detail-label">Año:</span>
                                             <span className="detail-value">
                                                 {song.release_date ? new Date(song.release_date).getFullYear() : 'N/A'}
                                             </span>
                                         </div>
                                         {song.album_name && (
                                             <div className="song-detail-row">
-                                                <span className="detail-label">Album:</span>
+                                                <span className="detail-label">Álbum:</span>
                                                 <span className="detail-value">{song.album_name}</span>
                                             </div>
                                         )}
@@ -283,14 +249,14 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                                     <div className="song-actions-column">
                                         <button
                                             className="play-button"
-                                            onClick={() => playSong(song, index)}
+                                            onClick={() => playSong(song)}
                                             title="Reproducir canción"
                                         >
                                             ▶️
                                         </button>
                                         <button
                                             className="p_delete-button"
-                                            onClick={() => setConfirmDeleteId(song.id)}
+                                            onClick={() => confirmDelete(song.id, song.name)}
                                             title="Eliminar de playlist"
                                         >
                                             🗑️
@@ -298,23 +264,6 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                                     </div>
                                 </div>
                             ))}
-                        </div>
-                    </div>
-                )}
-
-                {confirmDeleteId && (
-                    <div className="p_confirm-modal">
-                        <div className="p_confirm-content">
-                            <p>
-                                    Sure you want to delete{" "}
-                                {confirmDeleteId === "playlist" ? "la playlist completa" : "esta canción"}?
-                            </p>
-                            <button onClick={handleDelete} disabled={deleting}>
-                                {deleting ? "Eliminando..." : "Sí, eliminar"}
-                            </button>
-                            <button onClick={() => setConfirmDeleteId(null)} disabled={deleting}>
-                                Cancel
-                            </button>
                         </div>
                     </div>
                 )}

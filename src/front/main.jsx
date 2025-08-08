@@ -6,15 +6,15 @@ import './player.css';
 import 'animate.css';
 import { RouterProvider } from 'react-router-dom';
 import { StoreProvider } from './hooks/useGlobalReducer';
-import { PlayerProvider } from './hooks/PlayerContext'
+import { PlayerProvider } from './hooks/PlayerContext';
+import { NotificationProvider } from './NotificationProvider';
 import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
 import Layout from './pages/Layout';
 import Home from './pages/Home';
 import Mood from './pages/Mood';
 import Results from './pages/Results';
 import VerifyEmail from './pages/VerifyEmail';
-
-import Playlists from './components/Playlists'
+import Playlists from './components/Playlists';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -29,14 +29,14 @@ const router = createBrowserRouter(
 );
 
 const Main = () => {
-  return (  
-      
-       <PlayerProvider>                
-       <StoreProvider>              
-       <RouterProvider router={router} />
-       </StoreProvider>
-       </PlayerProvider>
-      
+  return (
+    <NotificationProvider>
+      <PlayerProvider>
+        <StoreProvider>
+          <RouterProvider router={router} />
+        </StoreProvider>
+      </PlayerProvider>
+    </NotificationProvider>
   );
 };
 

@@ -6,8 +6,6 @@ import PremiumButton from "../components/PremiumButton";
 import { getUserPlaylists } from "../store";
 import PlaylistViewModal from "./PlaylistViewModal";
 import useGlobalReducer from "../hooks/useGlobalReducer";
-
-
 const Navbar = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -17,45 +15,34 @@ const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingPlaylists, setLoadingPlaylists] = useState(true);
   const { store, dispatch } = useGlobalReducer();
-
   const playlists = store.playlists;
-
   const location = useLocation();
-
   const isHomePage = location.pathname === '/';
-
   const handleLoginSuccess = (userData) => {
     console.log('Usuario logueado:', userData);
     setLoggedUser(userData);
     setIsOpen(false);
   };
-
   const handleRegisterSuccess = (email) => {
     console.log('Usuario registrado:', email);
     setShowRegisterModal(false);
     setShowLoginModal(true);
   };
-
   const switchToRegister = () => {
     setShowLoginModal(false);
     setShowRegisterModal(true);
   };
-
   const switchToLogin = () => {
     setShowRegisterModal(false);
     setShowLoginModal(true);
   };
-
   const toggleNavbar = () => {
     setIsOpen(!isOpen);
   };
-
   const shouldShowSidebar = !loggedUser || isOpen;
-
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token || !loggedUser) return;
-
     const fetchPlaylists = async () => {
       setLoadingPlaylists(true);
       const data = await getUserPlaylists(token);
@@ -64,29 +51,22 @@ const Navbar = () => {
       }
       setLoadingPlaylists(false);
     };
-
     fetchPlaylists();
   }, [loggedUser]);
-
   const openPlaylistModal = (playlistId) => {
     setSelectedPlaylistId(playlistId);
     setIsModalOpen(true);
     dispatch({ type: "SET_SELECTED_PLAYLIST", payload: playlistId });
   };
-
   const closePlaylistModal = () => {
     setIsModalOpen(false);
     setSelectedPlaylistId(null);
   };
-
-
-
   return (
     <>
       <button className="navbar-toggle" onClick={toggleNavbar}>
         {isOpen ? '✖' : '☰'}
       </button>
-
       {shouldShowSidebar && (
         <nav className={`navbar-sidebar ${loggedUser ? (isOpen ? 'open' : 'closed') : 'open'}`}>
           <div>
@@ -95,12 +75,8 @@ const Navbar = () => {
               <h2 className="navbar-amuzz">Amuzz</h2>
             </Link>
           </div>
-
-
-
           <ul className="navbar-nav">
             <hr className="navbar-divider" />
-
             {!loggedUser && isHomePage && (
               <>
                 <li className="navbar-nav-item">
@@ -121,11 +97,9 @@ const Navbar = () => {
                 </li>
               </>
             )}
-
             {loggedUser && (
               <>
                 <p className="navbar-username">Hey, {loggedUser.username}!</p>
-
                 <li className="navbar-nav-item">
                   <details className="navbar-dropdown">
                     <summary className="navbar-btn navbar-btn-outline">Playlists</summary>
@@ -148,74 +122,79 @@ const Navbar = () => {
                     </ul>
                   </details>
                 </li>
-
                 <li className="navbar-nav-item">
-                  <Link
-                    to="/results"
-                    state={{ moodObj: { mood: 'happy', label: 'Feliz' } }}
-                    className="navbar-btn navbar-btn-outline"
-                  >
-                    Joyride
-                  </Link>
-                </li>
-                <li className="navbar-nav-item">
-                  <Link
-                    to="/results"
-                    state={{ moodObj: { mood: 'sad', label: 'Triste' } }}
-                    className="navbar-btn navbar-btn-outline"
-                  >
-                    Lo-fi
-                  </Link>
-                </li>
-                <li className="navbar-nav-item">
-                  <Link
-                    to="/results"
-                    state={{ moodObj: { mood: 'anxiety', label: 'Ansioso' } }}
-                    className="navbar-btn navbar-btn-outline"
-                  >
-                    On Edge
-                  </Link>
-                </li>
-                <li className="navbar-nav-item">
-                  <Link
-                    to="/results"
-                    state={{ moodObj: { mood: 'party', label: 'Fiesta' } }}
-                    className="navbar-btn navbar-btn-outline"
-                  >
-                    Groove
-                  </Link>
-                </li>
-                <li className="navbar-nav-item">
-                  <Link
-                    to="/results"
-                    state={{ moodObj: { mood: 'relax', label: 'Relajado' } }}
-                    className="navbar-btn navbar-btn-outline"
-                  >
-                    Stay Mellow
-                  </Link>
-                </li>
-                <li className="navbar-nav-item">
-                  <Link
-                    to="/results"
-                    state={{ moodObj: { mood: 'latin', label: 'Latino' } }}
-                    className="navbar-btn navbar-btn-outline"
-                  >
-                    Son Latino
-                  </Link>
-                </li>
-                <li className="navbar-nav-item">
-                  <Link
-                    to="/results"
-                    state={{ moodObj: { mood: 'random', label: 'Random' } }}
-                    className="navbar-btn navbar-btn-outline"
-                  >
-                    Shuffle
-                  </Link>
+                  <details className="navbar-dropdown">
+                    <summary className="navbar-btn navbar-btn-outline">Pick your Mood</summary>
+                    <ul className="navbar-dropdown-list">
+                      <li className="navbar-dropdown-item">
+                        <Link
+                          to="/results"
+                          state={{ moodObj: { mood: 'happy', label: 'Feliz' } }}
+                          className="navbar-dropdown-link"
+                        >
+                          ✨Joyride
+                        </Link>
+                      </li>
+                      <li className="navbar-dropdown-item">
+                        <Link
+                          to="/results"
+                          state={{ moodObj: { mood: 'sad', label: 'Triste' } }}
+                          className="navbar-dropdown-link"
+                        >
+                          🌙Lo-fi
+                        </Link>
+                      </li>
+                      <li className="navbar-dropdown-item">
+                        <Link
+                          to="/results"
+                          state={{ moodObj: { mood: 'anxiety', label: 'Ansioso' } }}
+                          className="navbar-dropdown-link"
+                        >
+                          ⚡On Edge
+                        </Link>
+                      </li>
+                      <li className="navbar-dropdown-item">
+                        <Link
+                          to="/results"
+                          state={{ moodObj: { mood: 'party', label: 'Fiesta' } }}
+                          className="navbar-dropdown-link"
+                        >
+                          🪩Groove
+                        </Link>
+                      </li>
+                      <li className="navbar-dropdown-item">
+                        <Link
+                          to="/results"
+                          state={{ moodObj: { mood: 'relax', label: 'Relajado' } }}
+                          className="navbar-dropdown-link"
+                        >
+                          🍃Stay Mellow
+                        </Link>
+                      </li>
+                      <li className="navbar-dropdown-item">
+                        <Link
+                          to="/results"
+                          state={{ moodObj: { mood: 'latin', label: 'Latino' } }}
+                          className="navbar-dropdown-link"
+                        >
+                          🌶️Son Latino
+                        </Link>
+                      </li>
+                      <li className="navbar-dropdown-item">
+                        <Link
+                          to="/results"
+                          state={{ moodObj: { mood: 'random', label: 'Random' } }}
+                          className="navbar-dropdown-link"
+                        >
+                          🎲Shuffle
+                        </Link>
+                      </li>
+                    </ul>
+                  </details>
                 </li>
               </>
             )}
           </ul>
-
           <div className="navbar-premium-button">
             <PremiumButton />
           </div>
@@ -229,7 +208,6 @@ const Navbar = () => {
           </div>
         </nav>
       )}
-
       {!loggedUser && isHomePage && (
         <>
           <LoginModal
@@ -246,15 +224,12 @@ const Navbar = () => {
           />
         </>
       )}
-
       <PlaylistViewModal
         isOpen={isModalOpen}
         onClose={closePlaylistModal}
         playlistId={selectedPlaylistId}
       />
-
     </>
   );
 };
-
 export default Navbar;
