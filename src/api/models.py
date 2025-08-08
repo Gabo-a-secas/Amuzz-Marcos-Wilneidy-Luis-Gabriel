@@ -85,6 +85,9 @@ class PlaylistSong(db.Model):
     image_url = db.Column(db.String, nullable=True)
     license_url = db.Column(db.String, nullable=True)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
+    genre = db.Column(db.String, nullable=True)  
+    duration = db.Column(db.Integer, nullable=True)  
+    release_date = db.Column(db.Date, nullable=True)
 
     
     def serialize(self):
@@ -97,5 +100,8 @@ class PlaylistSong(db.Model):
             "audio_url": self.audio_url,
             "image_url": self.image_url,
             "license_url": self.license_url,
+            "genre": self.genre,  
+            "duration": self.duration,  
+            "release_date": self.release_date.isoformat() if self.release_date else None,
             "added_at": self.added_at.isoformat()
         }

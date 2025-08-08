@@ -183,6 +183,9 @@ const Results = () => {
       artist: track.artist,
       audio_url: track.audio,
       image_url: track.image,
+      genre: Array.isArray(track.genres) ? JSON.stringify(track.genres) : (track.genres ?? null),
+      duration: track.duration ?? null,                
+      release_date: track.release_date ?? null
     };
 
     const res = await addSongToPlaylist(playlistId, songData, token);

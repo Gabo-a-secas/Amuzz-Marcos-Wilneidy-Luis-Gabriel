@@ -359,6 +359,9 @@ def add_song_to_playlist(playlist_id):
         name = data.get('name')
         artist = data.get('artist')
         audio_url = data.get('audio_url')
+        genre = data.get('genre') 
+        duration = data.get('duration')  
+        release_date = data.get('release_date')
 
         if not all([song_id, name, artist, audio_url]):
             return jsonify({"error": "Faltan datos obligatorios de la canción"}), 400
@@ -384,7 +387,10 @@ def add_song_to_playlist(playlist_id):
             artist=artist,
             audio_url=audio_url,
             image_url=data.get('image_url'),
-            license_url=data.get('license_url')
+            license_url=data.get('license_url'),
+            genre=genre,  
+            duration=duration,  
+            release_date=datetime.strptime(release_date, '%Y-%m-%d').date() if release_date else None  
         )
 
         db.session.add(new_song)
