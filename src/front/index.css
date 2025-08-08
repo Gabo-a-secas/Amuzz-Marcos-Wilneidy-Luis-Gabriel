@@ -105,7 +105,6 @@ footer {
   padding: 1rem 0;
 }
 
-/* Email Verification Banner */
 .verification-banner {
   background-color: #fff3cd;
   border: 1px solid #ffeaa7;
@@ -172,7 +171,6 @@ footer {
   margin: 0.5rem;
   align-items: center;
   
-  /* Gradiente holográfico sutil */
   background: linear-gradient(135deg, 
     rgba(255, 255, 255, 0.1) 0%, 
     rgba(255, 192, 203, 0.15) 25%, 
@@ -182,7 +180,7 @@ footer {
   );
   
   border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 50px; /* Pills shape! */
+  border-radius: 50px;
   color: white;
   font-size: 1.25rem;
   font-weight: 600;
@@ -224,15 +222,13 @@ footer {
     0 8px 16px rgba(255, 255, 255, 0.15),
     0 0 20px rgba(186, 85, 211, 0.3);
   border-color: rgba(255, 255, 255, 0.8);
-  
-  /* Efecto de brillo holográfico */
   text-shadow: 
     1px 1px 2px rgba(0, 0, 0, 0.3),
     0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .mood-btn:hover::before {
-  left: 100%; /* Efecto de brillo que pasa por encima */
+  left: 100%;
 }
 
 .mood-btn:active {
@@ -240,13 +236,12 @@ footer {
   transition: all 0.1s ease;
 }
 
-/* Animación de entrada con Animate.css */
 .mood-btn {
   animation-duration: 0.8s;
   animation-fill-mode: both;
 }
 
-/* Delays escalonados para cada botón */
+
 .mood-btn:nth-child(1) { animation-delay: 0.1s; }
 .mood-btn:nth-child(2) { animation-delay: 0.2s; }
 .mood-btn:nth-child(3) { animation-delay: 0.3s; }
@@ -255,6 +250,7 @@ footer {
 .mood-btn:nth-child(6) { animation-delay: 0.6s; }
 .mood-btn:nth-child(7) { animation-delay: 0.7s; }
 .mood-btn:nth-child(8) { animation-delay: 0.8s; }
+
 
 .title {
   background: none;
@@ -268,17 +264,17 @@ footer {
   position: relative;
   font-family: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 2.5rem;
-  font-weight: 300;
+  font-weight: 500;
   letter-spacing: 0.02em;
   line-height: 1.2;
-  background: linear-gradient(45deg,
-    #FFFFFF 0%,
-    #96EE8C 20%,
-    #A3CB96 35%,
+  background: linear-gradient(45deg, 
+    #ffffff 0%,
+    #96ee8c 20%,
+    #a3cb96 35%,
     #ebe9ebf9 50%,
-    #AD6BEB 65%,
-    #FFFFFF 80%,
-    #FFFFFF 100%
+    #ad6beb 65%,
+    #ffffff 80%,
+    #ffffff 100%
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -287,9 +283,10 @@ footer {
   filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3))
           drop-shadow(0 0 25px rgba(186, 85, 211, 0.2));
   transition: all 0.4s ease;
-  animation: fadeInDown 1s ease-out 0.3s both,
+  animation: fadeInDown 1s ease-out 0.3s both, 
              gradientShift 6s ease-in-out infinite 2s;
 }
+
 @keyframes gradientShift {
   0%, 100% {
     background-position: 0% 50%;
@@ -302,6 +299,7 @@ footer {
             drop-shadow(0 0 35px rgba(186, 85, 211, 0.3));
   }
 }
+
 @keyframes fadeInDown {
   from {
     opacity: 0;
@@ -312,21 +310,24 @@ footer {
     transform: translateY(0);
   }
 }
+
 .title:hover {
   transform: translateY(-2px);
   filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.4))
           drop-shadow(0 0 30px rgba(186, 85, 211, 0.4))
           drop-shadow(0 0 40px rgba(255, 192, 203, 0.3));
 }
+
 @media (max-width: 768px) {
   .title {
-    font-size: 2rem;
+    font-size: 3rem;
     margin: 1.5rem auto;
   }
 }
+
 @media (max-width: 480px) {
   .title {
-    font-size: 1.75rem;
+    font-size: 3rem;
     margin: 1rem auto;
     letter-spacing: 0.01em;
   }

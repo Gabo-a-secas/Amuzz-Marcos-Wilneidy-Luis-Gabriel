@@ -4,38 +4,161 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(248, 248, 248, 0);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
-  align-items: center;
-  z-index: 1000;
+  align-items: flex-start; /* Cambio clave: arriba en lugar de center */
+  padding-top: 8vh; /* Espaciado desde arriba */
+  padding-bottom: 150px; /* Espacio para el player */
+  z-index: 10001; /* Mayor que el player */
+  overflow-y: auto; /* Por si el contenido es muy alto */
 }
 
 .playermodal-content {
-  background: #00000067;
+  /* Gradiente mucho más oscuro */
+  background: linear-gradient(135deg, 
+    rgba(25, 35, 25, 0.95) 0%,      /* Verde muy oscuro */
+    rgba(45, 25, 45, 0.97) 25%,     /* Violeta muy oscuro */
+    rgba(20, 10, 35, 0.98) 50%,     /* Violeta casi negro */
+    rgba(35, 20, 40, 0.97) 75%,     /* Violeta oscuro */
+    rgba(30, 40, 30, 0.95) 100%     /* Verde muy oscuro */
+  );
+  
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  
+  border: 1px solid rgba(255, 255, 255, 0.15); /* Borde más sutil */
+  
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 15px;
   color: white;
-  width: 90%;
-  max-width: 600px;
+  
+  width: 85%;
+  max-width: 450px;
+  
   text-align: center;
   position: relative;
+  
+  /* Sombras más intensas para el fondo oscuro */
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(186, 85, 211, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .playermodal-image {
   width: 100%;
-  max-width: 300px;
-  border-radius: 8px;
-  margin-bottom: 1rem;
+  max-width: 250px;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  
+  transition: transform 0.3s ease;
+}
+
+.playermodal-image:hover {
+  transform: scale(1.02);
 }
 
 .close-button {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: none;
+  
+  background: rgba(255, 255, 255, 0.1);
   color: white;
-  border: none;
-  font-size: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  
+  width: 35px;
+  height: 35px;
+  
+  font-size: 1.2rem;
   cursor: pointer;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  
+  transition: all 0.3s ease;
+}
+
+.close-button:hover {
+  background: rgba(255, 192, 203, 0.2);
+  border-color: rgba(255, 192, 203, 0.4);
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(255, 192, 203, 0.3);
+}
+
+/* Tipografía mejorada */
+.playermodal-content h2 {
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-size: 1.5rem;
+}
+
+.playermodal-content p {
+  margin: 0.5rem 0;
+  opacity: 0.9;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Información de la canción */
+.song-info {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive mejorado */
+@media (max-width: 768px) {
+  .playermodal-overlay {
+    padding-top: 5vh;
+    padding-bottom: 170px; /* Más espacio en móvil */
+  }
+  
+  .playermodal-content {
+    width: 90%;
+    max-width: 350px;
+    padding: 1.5rem;
+  }
+  
+  .playermodal-image {
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .playermodal-overlay {
+    padding-top: 3vh;
+    padding-bottom: 200px; /* Aún más espacio para pantallas pequeñas */
+  }
+  
+  .playermodal-content {
+    width: 95%;
+    padding: 1rem;
+  }
 }

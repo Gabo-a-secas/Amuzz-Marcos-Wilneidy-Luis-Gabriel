@@ -18,7 +18,9 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
     const fetchPlaylistInfo = async () => {
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists`, {
+
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playlists`, {
+
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -28,8 +30,10 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
 
             const playlists = await res.json();
             // Buscar la playlist específica por ID
-            const currentPlaylist = playlists.find(p => p.id === playlistId);
-            
+            const currentPlaylist = (Array.isArray(playlists) ? playlists : []).find(
+                p => p.id === Number(playlistId) 
+            );
+
             if (currentPlaylist) {
                 setPlaylistInfo(currentPlaylist);
             }
@@ -49,11 +53,12 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists/${playlistId}/songs`, {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playlists/${playlistId}/songs`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
+
 
             if (!res.ok) throw new Error("Error al traer las canciones");
 
@@ -132,10 +137,11 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
         try {
             let url = "";
             if (confirmDeleteId === "playlist") {
-                url = `https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists/${playlistId}`;
+                url = `${import.meta.env.VITE_BACKEND_URL}/api/playlists/${playlistId}`;
             } else {
-                url = `https://glorious-space-barnacle-69555wxx95p6crpj9-3001.app.github.dev/api/playlists/${playlistId}/songs/${confirmDeleteId}`;
+                url = `${import.meta.env.VITE_BACKEND_URL}/api/playlists/${playlistId}/songs/${confirmDeleteId}`;
             }
+
 
             const res = await fetch(url, {
                 method: "DELETE",
@@ -147,7 +153,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
             if (!res.ok) throw new Error("Error al eliminar");
 
             if (confirmDeleteId === "playlist") {
-                onClose(); 
+                onClose();
                 refreshPlaylists();
                 notifyPlaylistRefresh('playlistModal');
             } else {
@@ -172,7 +178,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
         <div className="p_viewmodal-backdrop">
             <div className="p_viewmodal">
                 <button className="p_viewclose-button" onClick={onClose}>✖</button>
-                
+
                 {/* ✅ ACTUALIZADO: Mostrar nombre real de la playlist */}
                 <h2 className="p_viewmodal-header">
                     {playlistInfo ? playlistInfo.name : (playlistName || `Playlist #${playlistId}`)}
@@ -193,25 +199,22 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                     <p className="playlist-description">{playlistInfo.description}</p>
                 )}
 
-                {loading && <p>Cargando canciones...</p>}
+                {loading && <p>Loading...</p>}
                 {error && <p className="p_viewerror">{error}</p>}
 
                 {!loading && songs.length === 0 && !error && (
-                    <div className="empty-playlist">
-                        <p>📭 No hay canciones en esta playlist.</p>
-                        <p>Agrega canciones desde el buscador o explorador de música.</p>
-                    </div>
+                    <p>No songs on this playlist, add a new one.</p>
                 )}
 
                 {/* ✅ NUEVA VISTA TIPO LISTA DETALLADA */}
                 {!loading && songs.length > 0 && (
                     <div className="songs-table-container">
                         <div className="songs-table-header">
-                            <div className="song-info-column">Canción</div>
-                            <div className="song-details-column">Detalles</div>
-                            <div className="song-actions-column">Acciones</div>
+                            <div className="song-info-column">Song</div>
+                            <div className="song-details-column">Detail</div>
+                            <div className="song-actions-column">Action</div>
                         </div>
-                        
+
                         <div className="songs-list">
                             {songs.map((song, index) => (
                                 <div key={song.id} className="song-item">
@@ -221,9 +224,9 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                                         </div>
                                         <div className="song-image-container">
                                             {song.image_url ? (
-                                                <img 
-                                                    src={song.image_url} 
-                                                    alt={`${song.name} cover`} 
+                                                <img
+                                                    src={song.image_url}
+                                                    alt={`${song.name} cover`}
                                                     className="song-image"
                                                 />
                                             ) : (
@@ -235,50 +238,58 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                                             <div className="song-artist">{song.artist}</div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="song-details-column">
                                         <div className="song-detail-row">
-                                            <span className="detail-label">Género:</span>
+                                            <span className="detail-label">Genre:</span>
                                             <span className="detail-value">
-                                                {song.genres ? (
-                                                    typeof song.genres === 'string' 
-                                                        ? JSON.parse(song.genres).join(', ') 
-                                                        : Array.isArray(song.genres) 
-                                                            ? song.genres.join(', ')
-                                                            : 'N/A'
-                                                ) : 'N/A'}
+                                                {(() => {
+                                                    const g = song.genre !== undefined ? song.genre : song.genres;
+                                                    if (!g) return 'N/A';
+                                                    if (Array.isArray(g)) return g.join(', ');
+                                                    if (typeof g === 'string') {
+                                                        try {
+                                                            const parsed = JSON.parse(g);
+                                                            return Array.isArray(parsed) ? parsed.join(', ') : g;
+                                                        } catch {
+                                                            return g; 
+                                                        }
+                                                    }
+                                                    return 'N/A';
+                                                })()}
                                             </span>
+
                                         </div>
                                         <div className="song-detail-row">
-                                            <span className="detail-label">Duración:</span>
+                                            <span className="detail-label">Duration:</span>
                                             <span className="detail-value">
                                                 {song.duration ? formatDuration(song.duration) : 'N/A'}
                                             </span>
                                         </div>
                                         <div className="song-detail-row">
-                                            <span className="detail-label">Año:</span>
+                                            <span className="detail-label">Release date:</span>
                                             <span className="detail-value">
                                                 {song.release_date ? new Date(song.release_date).getFullYear() : 'N/A'}
                                             </span>
                                         </div>
                                         {song.album_name && (
                                             <div className="song-detail-row">
-                                                <span className="detail-label">Álbum:</span>
+                                                <span className="detail-label">Album:</span>
                                                 <span className="detail-value">{song.album_name}</span>
                                             </div>
                                         )}
                                     </div>
-                                    
+
                                     <div className="song-actions-column">
-                                        <button 
+                                        <button
                                             className="play-button"
                                             onClick={() => playSong(song, index)}
                                             title="Reproducir canción"
                                         >
                                             ▶️
                                         </button>
-                                        <button 
-                                            className="p_delete-button" 
+                                        <button
+                                            className="p_delete-button"
                                             onClick={() => setConfirmDeleteId(song.id)}
                                             title="Eliminar de playlist"
                                         >
@@ -295,14 +306,14 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                     <div className="p_confirm-modal">
                         <div className="p_confirm-content">
                             <p>
-                                ¿Seguro que quieres eliminar{" "}
+                                    Sure you want to delete{" "}
                                 {confirmDeleteId === "playlist" ? "la playlist completa" : "esta canción"}?
                             </p>
                             <button onClick={handleDelete} disabled={deleting}>
                                 {deleting ? "Eliminando..." : "Sí, eliminar"}
                             </button>
                             <button onClick={() => setConfirmDeleteId(null)} disabled={deleting}>
-                                Cancelar
+                                Cancel
                             </button>
                         </div>
                     </div>

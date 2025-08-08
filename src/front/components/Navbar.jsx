@@ -125,6 +125,7 @@ const Navbar = () => {
             {loggedUser && (
               <>
                 <p className="navbar-username">Hey, {loggedUser.username}!</p>
+
                 <li className="navbar-nav-item">
                   <details className="navbar-dropdown">
                     <summary className="navbar-btn navbar-btn-outline">Playlists</summary>
@@ -147,75 +148,69 @@ const Navbar = () => {
                     </ul>
                   </details>
                 </li>
+
                 <li className="navbar-nav-item">
-                  <details className="navbar-dropdown">
-                    <summary className="navbar-btn navbar-btn-outline">Pick your Mood</summary>
-                    <ul className="navbar-dropdown-list">
-                      <li className="navbar-dropdown-item">
-                        <Link
-                          to="/results"
-                          state={{ moodObj: { mood: 'happy', label: 'Feliz' } }}
-                          className="navbar-dropdown-link"
-                        >
-                           Joyride
-                        </Link>
-                      </li>
-                      <li className="navbar-dropdown-item">
-                        <Link
-                          to="/results"
-                          state={{ moodObj: { mood: 'sad', label: 'Triste' } }}
-                          className="navbar-dropdown-link"
-                        >
-                         Lo-fi
-                        </Link>
-                      </li>
-                      <li className="navbar-dropdown-item">
-                        <Link
-                          to="/results"
-                          state={{ moodObj: { mood: 'anxiety', label: 'Ansioso' } }}
-                          className="navbar-dropdown-link"
-                        >
-                          On Edge
-                        </Link>
-                      </li>
-                      <li className="navbar-dropdown-item">
-                        <Link
-                          to="/results"
-                          state={{ moodObj: { mood: 'party', label: 'Fiesta' } }}
-                          className="navbar-dropdown-link"
-                        >
-                           Groove
-                        </Link>
-                      </li>
-                      <li className="navbar-dropdown-item">
-                        <Link
-                          to="/results"
-                          state={{ moodObj: { mood: 'relax', label: 'Relajado' } }}
-                          className="navbar-dropdown-link"
-                        >
-                           Stay Mellow
-                        </Link>
-                      </li>
-                      <li className="navbar-dropdown-item">
-                        <Link
-                          to="/results"
-                          state={{ moodObj: { mood: 'latin', label: 'Latino' } }}
-                          className="navbar-dropdown-link"
-                        >
-                        Son Latino
-                        </Link>
-                      </li>
-                      <li className="navbar-dropdown-item">
-                        <Link
-                          to="/results"
-                          state={{ moodObj: { mood: 'random', label: 'Random' } }}
-                          className="navbar-dropdown-link"
-                        >
-                          Shuffle
-                        </Link>
-                      </li>
-                    </ul>
-                  </details>
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'happy', label: 'Feliz' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Joyride
+                  </Link>
+                </li>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'sad', label: 'Triste' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Lo-fi
+                  </Link>
+                </li>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'anxiety', label: 'Ansioso' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    On Edge
+                  </Link>
+                </li>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'party', label: 'Fiesta' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Groove
+                  </Link>
+                </li>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'relax', label: 'Relajado' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Stay Mellow
+                  </Link>
+                </li>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'latin', label: 'Latino' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Son Latino
+                  </Link>
+                </li>
+                <li className="navbar-nav-item">
+                  <Link
+                    to="/results"
+                    state={{ moodObj: { mood: 'random', label: 'Random' } }}
+                    className="navbar-btn navbar-btn-outline"
+                  >
+                    Shuffle
+                  </Link>
                 </li>
               </>
             )}

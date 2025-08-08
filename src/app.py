@@ -25,8 +25,7 @@ app = Flask(__name__)
 CORS(app, resources={
     r"/api/*": {
         "origins": [
-            "https://glorious-space-barnacle-69555wxx95p6crpj9-3000.app.github.dev",
-            "http://localhost:5173"
+            os.getenv("FRONTEND_URL", "http://localhost:5173"),
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
@@ -50,10 +49,12 @@ mail = Mail(app)
 CORS(app, resources={
     r"/*": {
         "origins": [
-            "https://glorious-space-barnacle-69555wxx95p6crpj9-3000.app.github.dev",
+
+            os.getenv("FRONTEND_URL", "http://localhost:5173"),
+
             "https://*.github.dev",
             "http://localhost:*",
-            "http://localhost:5173"
+            
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Origin"],
@@ -64,7 +65,7 @@ CORS(app, resources={
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
 app.config["JWT_SECRET_KEY"] = "super-secret-key"
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=7)
 jwt = JWTManager(app)
 
 db.init_app(app)
@@ -191,6 +192,8 @@ def login_user():
     except Exception as e:
         print(f'Error durante el login: {e}')
         return jsonify({"message": "Ocurrió un error durante el login"}), 500
+
+
 
 
 @app.route('/api/protected', methods=['GET'])
