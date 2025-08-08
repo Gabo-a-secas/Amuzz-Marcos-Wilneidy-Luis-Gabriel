@@ -193,7 +193,22 @@ def login_user():
         print(f'Error durante el login: {e}')
         return jsonify({"message": "Ocurrió un error durante el login"}), 500
 
-
+@app.route('/api/refresh-session', methods=['GET'])
+@jwt_required()
+def refresh_session():
+    user_id = get_jwt_identity()
+    user = db.session.execute(db.select(User).filter_by(id=user_id)).scalar_one_or_none()
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    return jsonify({
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "full_name": user.full_name,
+            "email_verified": user.email_verified
+        }
+    }), 200
 
 
 @app.route('/api/protected', methods=['GET'])
