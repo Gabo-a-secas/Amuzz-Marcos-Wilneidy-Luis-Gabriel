@@ -93,23 +93,23 @@ const VerifyEmail = () => {
         {status === 'verifying' && (
           <>
             <div className="verify-spinner"></div>
-            <h2>Verificando tu email...</h2>
-            <p>Por favor espera mientras verificamos tu dirección de email.</p>
+            <h2>Verifying email...</h2>
+            <p>Please wait.</p>
           </>
         )}
 
         {status === 'success' && (
           <>
             <div className="verify-icon success">✓</div>
-            <h2>¡Email Verificado!</h2>
+            <h2>¡Vrification succesfull!</h2>
             <p>{message}</p>
-            <p>Redirigiendo al inicio en 3 segundos...</p>
+            <p>Redirecting...</p>
             <button 
               className="verify-btn"
               onClick={() => navigate('/')}
               style={{ marginTop: '15px' }}
             >
-              Ir al Inicio Ahora
+            Go home
             </button>
           </>
         )}
@@ -117,7 +117,7 @@ const VerifyEmail = () => {
         {status === 'error' && (
           <>
             <div className="verify-icon error">✗</div>
-            <h2>Error de Verificación</h2>
+            <h2>Verification error</h2>
             <p>{message}</p>
             <div style={{ marginTop: '20px' }}>
               <button 
@@ -125,14 +125,14 @@ const VerifyEmail = () => {
                 onClick={() => navigate('/')}
                 style={{ marginRight: '10px' }}
               >
-                Ir al Inicio
+                Go home
               </button>
               <button 
                 className="verify-btn"
                 onClick={() => navigate('/register')}
                 style={{ backgroundColor: '#6c757d' }}
               >
-                Registrarse Nuevamente
+                Register again
               </button>
             </div>
           </>

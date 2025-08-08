@@ -389,7 +389,7 @@ const Results = () => {
             }}
             tabIndex={0}
           >
-            + Crear nueva playlist
+            + Add a new playlist
           </button>
         </div>,
         document.body
