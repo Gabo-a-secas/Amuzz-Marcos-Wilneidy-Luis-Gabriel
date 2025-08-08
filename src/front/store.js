@@ -179,7 +179,6 @@ export async function getUserPlaylists(token) {
   }
 }
 
-
 export async function addSongToPlaylist(playlistId, songData, token) {
   try {
     const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/playlists/${playlistId}/songs`, {
@@ -198,6 +197,7 @@ export async function addSongToPlaylist(playlistId, songData, token) {
     return { ok: false, result: null };
   }
 }
+
 
 // Agregar estas funciones al store.js
 

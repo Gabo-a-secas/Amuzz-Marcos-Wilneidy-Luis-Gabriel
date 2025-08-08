@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "../PlaylistViewModal.css";
 import useGlobalReducer from "../hooks/useGlobalReducer";
+import { usePlayer } from "../hooks/PlayerContext"; // ✅ AGREGAR
 import { notifyPlaylistSongRemoved, notifyPlaylistRefresh } from "../PlaylistEvents.js";
 
 const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
@@ -11,6 +12,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const [deleting, setDeleting] = useState(false);
     const { refreshPlaylists } = useGlobalReducer();
+    const { openPlayer } = usePlayer(); // ✅ USAR EL CONTEXTO DEL PLAYER
 
     // ✅ NUEVA FUNCIÓN: Obtener info de la playlist
     const fetchPlaylistInfo = async () => {
@@ -81,11 +83,44 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // ✅ NUEVA FUNCIÓN: Reproducir una canción específica
-    const playSong = (song) => {
-        // TODO: Implementar reproductor de audio
-        console.log('Reproducir canción:', song);
-        alert(`Reproduciendo: ${song.name} - ${song.artist}`);
+    // ✅ FUNCIÓN ACTUALIZADA: Reproducir una canción específica con el player real
+    const playSong = (selectedSong, songIndex) => {
+        console.log('🎵 PlaylistModal: Reproducir canción:', selectedSong);
+        
+        // Convertir la canción seleccionada al formato que espera el player
+        const trackData = {
+            id: selectedSong.song_id || selectedSong.id,
+            name: selectedSong.name,
+            artist: selectedSong.artist,
+            audio: selectedSong.audio_url || selectedSong.audio,
+            image: selectedSong.image_url || selectedSong.image,
+            duration: selectedSong.duration,
+            genre: selectedSong.genres,
+            album_name: selectedSong.album_name,
+            release_date: selectedSong.release_date,
+            waveform: selectedSong.waveform,
+            genres: selectedSong.genres,
+        };
+
+        // Convertir toda la playlist al formato que espera el player
+        const playlistData = songs.map(song => ({
+            id: song.song_id || song.id,
+            name: song.name,
+            artist: song.artist,
+            audio: song.audio_url || song.audio,
+            image: song.image_url || song.image,
+            duration: song.duration,
+            genre: song.genres,
+            album_name: song.album_name,
+            release_date: song.release_date,
+            waveform: song.waveform,
+            genres: song.genres,
+        }));
+
+        console.log('🎵 PlaylistModal: Opening player with:', { trackData, playlistData });
+        
+        // Usar el contexto del player para abrir el reproductor
+        openPlayer(trackData, playlistData);
     };
 
     const handleDelete = async () => {
@@ -116,9 +151,11 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                 refreshPlaylists();
                 notifyPlaylistRefresh('playlistModal');
             } else {
+                // Actualizar la lista local de canciones
                 setSongs(prev => prev.filter(song => song.id !== confirmDeleteId));
+                // Notificar a otros componentes que se eliminó una canción
                 notifyPlaylistSongRemoved(playlistId, 'playlistModal');
-                console.log(`Song removed from playlist ${playlistId}`);
+                console.log(`🎵 PlaylistModal: Song removed from playlist ${playlistId}`);
             }
 
             setConfirmDeleteId(null);
@@ -144,6 +181,13 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                     </button>
                 </h2>
 
+                {/* ✅ MOSTRAR CONTADOR DE CANCIONES */}
+                {songs.length > 0 && (
+                    <p className="playlist-song-count">
+                        {songs.length} {songs.length === 1 ? 'canción' : 'canciones'}
+                    </p>
+                )}
+
                 {/* ✅ OPCIONAL: Mostrar descripción si existe */}
                 {playlistInfo?.description && (
                     <p className="playlist-description">{playlistInfo.description}</p>
@@ -153,7 +197,10 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                 {error && <p className="p_viewerror">{error}</p>}
 
                 {!loading && songs.length === 0 && !error && (
-                    <p>No hay canciones en esta playlist.</p>
+                    <div className="empty-playlist">
+                        <p>📭 No hay canciones en esta playlist.</p>
+                        <p>Agrega canciones desde el buscador o explorador de música.</p>
+                    </div>
                 )}
 
                 {/* ✅ NUEVA VISTA TIPO LISTA DETALLADA */}
@@ -169,6 +216,9 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                             {songs.map((song, index) => (
                                 <div key={song.id} className="song-item">
                                     <div className="song-info-column">
+                                        <div className="song-number">
+                                            {index + 1}
+                                        </div>
                                         <div className="song-image-container">
                                             {song.image_url ? (
                                                 <img 
@@ -222,7 +272,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
                                     <div className="song-actions-column">
                                         <button 
                                             className="play-button"
-                                            onClick={() => playSong(song)}
+                                            onClick={() => playSong(song, index)}
                                             title="Reproducir canción"
                                         >
                                             ▶️

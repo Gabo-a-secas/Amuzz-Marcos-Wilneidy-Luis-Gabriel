@@ -57,7 +57,7 @@ const Home = () => {
       <div className="contenido-encima z-10 pointer-events-auto">
         <img className="home-logo" src="/amuzz_logo.png" alt="amuzz_logo" />
         <div>
-          <h4>Ready to set the mood?</h4>
+          <h4 className="title">Ready to set the mood?</h4>
         </div>
         <div className="grid">
           {moods.map((m) => (
