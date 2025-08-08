@@ -1,10 +1,22 @@
+const API_BASE = import.meta.env.VITE_BACKEND_URL.replace(/\/+$/, "");
+
 export const initialStore = () => {
-  const storedToken = localStorage.getItem("token");
-  const storedUser = localStorage.getItem("user");
+  const storedToken = localStorage.getItem("token") || null;
+
+  const rawUser = localStorage.getItem("user"); // <-- nombre correcto
+  let user = null;
+  if (rawUser && rawUser !== "undefined" && rawUser !== "null") {
+    try {
+      user = JSON.parse(rawUser);
+    } catch {
+      localStorage.removeItem("user");
+      user = null;
+    }
+  }
 
   return {
-    user: storedUser ? JSON.parse(storedUser) : null,
-    token: storedToken || null,
+    user,
+    token: storedToken,
     isAuthenticated: !!storedToken,
     currentTrack: null,
     playlists: [],
@@ -27,19 +39,20 @@ export default function storeReducer(state, action) {
         token: action.payload.access_token,
         isAuthenticated: true,
       };
-
-    case "SET_USER":
+    
+    case "REFRESH_SESSION_SUCCESS":  
+      localStorage.setItem("user", JSON.stringify(action.payload));
       return {
         ...state,
         user: action.payload,
         isAuthenticated: true,
       };
 
-    case "LOGOUT":
+    case "SET_USER":
       return {
         ...state,
-        user: null,
-        isAuthenticated: false,
+        user: action.payload,
+        isAuthenticated: true,
       };
 
     case "SET_CURRENT_TRACK":
@@ -120,6 +133,42 @@ export default function storeReducer(state, action) {
 
     default:
       return state;
+  }
+}
+
+export async function refreshUserSession(dispatch) {
+  const token = localStorage.getItem("token");
+  if (!token) return false;
+
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/refresh-session`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.status === 401 || response.status === 422) {
+      dispatch({ type: "LOGOUT" });
+      return false;
+    }
+
+    if (!response.ok) {
+      console.error("No se pudo refrescar la sesión");
+      return false;
+    }
+
+    const data = await response.json();
+    dispatch({ type: "REFRESH_SESSION_SUCCESS", payload: data.user });
+    console.log("Sesión refrescada automáticamente:", data.user);
+    return true;
+  } catch (error) {
+    console.error("Error al refrescar sesión:", error);
+    return false;
   }
 }
 

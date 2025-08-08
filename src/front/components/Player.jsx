@@ -7,7 +7,7 @@ import "../playlist-dropup.css"; // Agregar los estilos del dropup
 import NewPlaylistModal from "../components/NewPlaylistModal";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { createUserPlaylist, addSongToPlaylist, getUserPlaylistsWithGuaranteedCounts } from "../store.js";
-import { notifyPlaylistSongAdded } from "../PlaylistEvents.js";
+import { notifyPlaylistSongAdded, notifyPlaylistCreated } from "../PlaylistEvents.js";
 
 export const Player = memo(({ visible, onClose }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -664,13 +664,21 @@ export const Player = memo(({ visible, onClose }) => {
           onCreate={async (name) => {
             const token = localStorage.getItem("token");
             const result = await createUserPlaylist(token, name);
-            
+
             if (result) {
               console.log("✅ Playlist creada desde player:", result);
-              
-              // Refrescar las playlists
-              await refreshPlaylists();
-              
+
+              // 🔧 FIX 1: Actualizar el estado local inmediatamente con la nueva playlist
+              const newPlaylistWithCount = {
+                ...result,
+                songCount: 0, // Inicialmente 0
+                hasRealCount: true
+              };
+
+              // Agregar la nueva playlist a ambos estados locales
+              setPlaylistsWithCounts(prev => [...prev, newPlaylistWithCount]);
+              setUserPlaylists(prev => [...prev, newPlaylistWithCount]);
+
               // Si hay una canción reproduciéndose, agregarla a la nueva playlist
               if (track) {
                 const songData = {
@@ -684,11 +692,44 @@ export const Player = memo(({ visible, onClose }) => {
                 const addRes = await addSongToPlaylist(result.id, songData, token);
                 if (addRes && addRes.ok) {
                   alert("🎶 Playlist creada y canción agregada con éxito!");
+
+                  // 🔧 FIX 2: Actualizar el contador a 1 después de agregar la canción
+                  setPlaylistsWithCounts(prev =>
+                    prev.map(p =>
+                      p.id === result.id
+                        ? { ...p, songCount: 1 } // Establecer en 1 porque agregamos la primera canción
+                        : p
+                    )
+                  );
+
+                  setUserPlaylists(prev =>
+                    prev.map(p =>
+                      p.id === result.id
+                        ? { ...p, songCount: 1 }
+                        : p
+                    )
+                  );
+
+                  // 🔧 FIX 3: Notificar a otros componentes
+                  notifyPlaylistSongAdded(result.id, 'player');
+
                 } else {
                   alert("Playlist creada, pero error al añadir la canción.");
+                  // Si falló agregar la canción, mantener el contador en 0
                 }
               }
-              
+
+              // 🔧 FIX 4: Refrescar para sincronizar con el backend (al final)
+              await refreshPlaylists();
+
+              const finalPlaylist = {
+                ...result,
+                songCount: track ? 1 : 0,
+                hasRealCount: true
+              };
+              console.log("🎵 Player: Notifying playlist created:", finalPlaylist);
+              notifyPlaylistCreated(finalPlaylist, 'player')
+
               setShowModal(false);
             } else {
               alert("No se pudo crear la playlist.");

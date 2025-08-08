@@ -8,7 +8,7 @@ import NewPlaylistModal from "../components/NewPlaylistModal";
 import "../NewPlaylistModal.css";
 import { createPortal } from "react-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
-import { notifyPlaylistSongAdded } from "../PlaylistEvents.js";
+import { notifyPlaylistSongAdded, notifyPlaylistCreated } from "../PlaylistEvents.js";
 
 const moodVideos = {
   happy: "/videos/feliz.mp4",
@@ -31,7 +31,12 @@ const Results = () => {
 
   const { store, refreshPlaylists } = useGlobalReducer();
   const { playlists } = store;
+  
+  // 🔧 USAR LA MISMA ESTRUCTURA QUE EL PLAYER
+  const [userPlaylists, setUserPlaylists] = useState([]);
   const [playlistsWithCounts, setPlaylistsWithCounts] = useState([]);
+  const { dispatch, state } = useGlobalReducer();
+  
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [showPlaylistMenuId, setShowPlaylistMenuId] = useState(null);
   const [showNewPlaylistModal, setShowNewPlaylistModal] = useState(false);
@@ -40,88 +45,150 @@ const Results = () => {
   const dropdownRef = useRef(null);
   const plusButtonRefs = useRef({});
 
-  // Cargar playlists con conteos al montar
-  useEffect(() => {
-    const loadPlaylistsWithCounts = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      try {
-        console.log("🔄 Results: Loading playlists with GUARANTEED counts...");
-        const playlistsData = await getUserPlaylistsWithGuaranteedCounts(token);
-        console.log("📊 Results: Playlists with guaranteed counts received:", playlistsData);
-
-        if (playlistsData && playlistsData.length > 0) {
-          setPlaylistsWithCounts(playlistsData);
-
-          // Verificar que los conteos están correctos
-          playlistsData.forEach(playlist => {
-            console.log(`📝 Results: Playlist "${playlist.name}": ${playlist.songCount || 0} canciones (${playlist.hasRealCount ? 'REAL' : 'FALLBACK'})`);
-          });
-        } else {
-          console.log("⚠️ Results: No playlists data received");
-        }
-      } catch (error) {
-        console.error("❌ Error loading playlists with counts:", error);
-        // Fallback: usar playlists regulares
-        refreshPlaylists();
-      }
-    };
-
-    loadPlaylistsWithCounts();
-  }, []);
-
-  // Event listener para sincronizar contadores cuando se agregan canciones
+  // 🔧 EVENT LISTENER - EXACTAMENTE IGUAL QUE EN PLAYER
   useEffect(() => {
     const handlePlaylistUpdated = (event) => {
-      const { playlistId, action, source } = event.detail;
-
-      // Solo actualizar si NO viene de este mismo componente
-      if (source === 'results') return;
-
+      const { playlistId, action, source, playlist } = event.detail;
+      
+      console.log("🎧 Results EVENT:", { action, source, playlistId, playlist });
+      
+      // Solo actualizar si NO viene de este mismo componente (results)
+      if (source === 'results') {
+        console.log("🎧 Results: Ignoring own event");
+        return;
+      }
+      
       if (action === 'song_added') {
-        // Actualizar el contador de la playlist específica
-        setPlaylistsWithCounts(prevPlaylists =>
-          prevPlaylists.map(p =>
-            p.id === playlistId
+        console.log("🎧 Results: External song added to playlist:", playlistId);
+        setPlaylistsWithCounts(prevPlaylists => {
+          const updated = prevPlaylists.map(p => 
+            p.id === playlistId 
               ? { ...p, songCount: (p.songCount || 0) + 1 }
               : p
-          )
-        );
+          );
+          console.log("🎧 Results: Updated playlistsWithCounts:", updated);
+          return updated;
+        });
+        
+        setUserPlaylists(prevPlaylists => {
+          const updated = prevPlaylists.map(p => 
+            p.id === playlistId 
+              ? { ...p, songCount: (p.songCount || 0) + 1 }
+              : p
+          );
+          console.log("🎧 Results: Updated userPlaylists:", updated);
+          return updated;
+        });
+        
       } else if (action === 'song_removed') {
-        // ✅ AGREGAR: Manejar eliminación de canciones
-        setPlaylistsWithCounts(prevPlaylists =>
-          prevPlaylists.map(p =>
-            p.id === playlistId
+        setPlaylistsWithCounts(prevPlaylists => 
+          prevPlaylists.map(p => 
+            p.id === playlistId 
               ? { ...p, songCount: Math.max(0, (p.songCount || 0) - 1) }
               : p
           )
         );
-      } else if (action === 'refresh' || action === 'playlist_created') {
-        // Recargar todas las playlists con conteos
-        const loadPlaylistsWithCounts = async () => {
-          const token = localStorage.getItem("token");
-          if (token) {
-            try {
-              const playlistsData = await getUserPlaylistsWithGuaranteedCounts(token);
-              if (playlistsData) {
-                setPlaylistsWithCounts(playlistsData);
-              }
-            } catch (error) {
-              console.error("Error reloading playlists:", error);
+        
+        setUserPlaylists(prevPlaylists => 
+          prevPlaylists.map(p => 
+            p.id === playlistId 
+              ? { ...p, songCount: Math.max(0, (p.songCount || 0) - 1) }
+              : p
+          )
+        );
+        
+      } else if (action === 'playlist_created') {
+        console.log("🎧 Results: External playlist created:", playlist);
+        
+        if (playlist) {
+          // Actualizar playlistsWithCounts
+          setPlaylistsWithCounts(prev => {
+            const exists = prev.some(p => p.id === playlist.id);
+            console.log("🎧 Results: Playlist exists in playlistsWithCounts?", exists);
+            
+            if (!exists) {
+              const newList = [...prev, playlist];
+              console.log("🎧 Results: Adding to playlistsWithCounts. New list:", newList);
+              return newList;
             }
-          }
-        };
-        loadPlaylistsWithCounts();
+            return prev;
+          });
+          
+          // Actualizar userPlaylists
+          setUserPlaylists(prev => {
+            const exists = prev.some(p => p.id === playlist.id);
+            console.log("🎧 Results: Playlist exists in userPlaylists?", exists);
+            
+            if (!exists) {
+              const newList = [...prev, playlist];
+              console.log("🎧 Results: Adding to userPlaylists. New list:", newList);
+              return newList;
+            }
+            return prev;
+          });
+        }
+        
+      } else if (action === 'refresh') {
+        console.log("🎧 Results: Refreshing all playlists due to external event");
+        refreshPlaylistsResults();
       }
     };
 
+    console.log("🎧 Results: Setting up event listener");
     window.addEventListener('playlistUpdated', handlePlaylistUpdated);
-
+    
     return () => {
+      console.log("🎧 Results: Removing event listener");
       window.removeEventListener('playlistUpdated', handlePlaylistUpdated);
     };
   }, []);
+
+  // 🔧 CARGAR PLAYLISTS - EXACTAMENTE IGUAL QUE EN PLAYER
+  useEffect(() => {
+    const loadPlaylists = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          console.log("🎵 Results: Loading playlists with GUARANTEED counts...");
+          const playlistsWithCounts = await getUserPlaylistsWithGuaranteedCounts(token);
+          console.log("🎵 Results: Playlists with guaranteed counts received:", playlistsWithCounts);
+          
+          if (playlistsWithCounts && playlistsWithCounts.length > 0) {
+            setUserPlaylists(playlistsWithCounts);
+            setPlaylistsWithCounts(playlistsWithCounts);
+            
+            // Debug: mostrar conteos
+            playlistsWithCounts.forEach(playlist => {
+              console.log(`🎵 Results: "${playlist.name}": ${playlist.songCount || 0} canciones (${playlist.hasRealCount ? 'REAL' : 'FALLBACK'})`);
+            });
+          } else {
+            console.log("🎵 Results: No playlists received");
+          }
+        } catch (error) {
+          console.error("🎵 Results: Error loading playlists:", error);
+        }
+      }
+    };
+    loadPlaylists();
+  }, []);
+
+  // 🔧 FUNCIÓN REFRESH - EXACTAMENTE IGUAL QUE EN PLAYER
+  const refreshPlaylistsResults = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const playlistsWithCounts = await getUserPlaylistsWithGuaranteedCounts(token);
+        
+        if (playlistsWithCounts) {
+          setUserPlaylists(playlistsWithCounts);
+          setPlaylistsWithCounts(playlistsWithCounts);
+          dispatch({ type: "SET_PLAYLISTS", payload: playlistsWithCounts });
+        }
+      } catch (error) {
+        console.error("Error refreshing playlists:", error);
+      }
+    }
+  };
 
   useEffect(() => {
     if (!mood) return;
@@ -175,7 +242,10 @@ const Results = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleAddToPlaylist = async (playlistId, track) => {
+  // 🔧 FUNCIÓN AGREGAR A PLAYLIST - IGUAL QUE EN PLAYER
+  const handleAddToPlaylist = async (playlist, track) => {
+    if (!track) return;
+
     const token = localStorage.getItem("token");
     const songData = {
       song_id: track.id,
@@ -188,28 +258,26 @@ const Results = () => {
       release_date: track.release_date ?? null
     };
 
-    const res = await addSongToPlaylist(playlistId, songData, token);
-    if (res.ok) {
-      alert("Canción agregada");
-
-      // Solo actualizar contador local, NO duplicar con la notificación
-      setPlaylistsWithCounts(prevPlaylists =>
-        prevPlaylists.map(p =>
-          p.id === playlistId
+    const addRes = await addSongToPlaylist(playlist.id, songData, token);
+    if (addRes && addRes.ok) {
+      alert(`🎶 Canción agregada a "${playlist.name}" con éxito!`);
+      
+      // Actualizar el conteo de la playlist específica
+      setPlaylistsWithCounts(prevPlaylists => 
+        prevPlaylists.map(p => 
+          p.id === playlist.id 
             ? { ...p, songCount: (p.songCount || 0) + 1 }
             : p
         )
       );
-
-      // Notificar al Player (pero el Player no debe incrementar desde Results)
-      notifyPlaylistSongAdded(playlistId, 'results');
-
-      refreshPlaylists();
-      setShowPlaylistMenuId(null);
+      
+      // Disparar evento para que otros componentes se sincronicen
+      notifyPlaylistSongAdded(playlist.id, 'results');
+      
     } else {
-      alert("Error al agregar canción");
+      alert(`Error al agregar la canción a "${playlist.name}".`);
     }
-
+    
     setShowPlaylistMenuId(null);
   };
 
@@ -227,8 +295,8 @@ const Results = () => {
       const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
 
       setDropdownPosition({
-        top: rect.bottom + scrollTop + 5, // 5px debajo del botón
-        left: rect.left + scrollLeft - 150, // Ajustar hacia la izquierda
+        top: rect.bottom + scrollTop + 5,
+        left: rect.left + scrollLeft - 150,
       });
     }
 
@@ -253,7 +321,6 @@ const Results = () => {
     };
   }, []);
 
-  // Cerrar dropdown al hacer scroll
   useEffect(() => {
     const handleScroll = () => {
       if (showPlaylistMenuId) {
@@ -341,7 +408,7 @@ const Results = () => {
         )}
       </div>
 
-
+      {/* 🔧 DROPDOWN - USANDO PLAYLISTS CON CONTEOS IGUAL QUE EN PLAYER */}
       {showPlaylistMenuId && createPortal(
         <div
           className="playlist-dropdown-portal"
@@ -353,36 +420,27 @@ const Results = () => {
             zIndex: 10000,
           }}
         >
-          {/* Usar playlistsWithCounts en lugar de playlists para mostrar conteos */}
-          {Array.isArray(playlistsWithCounts) && playlistsWithCounts.length > 0
-            ? playlistsWithCounts.map((playlist) => (
-              <button
-                key={playlist.id}
-                className="playlist-option"
-                onClick={() => handleAddToPlaylist(playlist.id, tracks.find(t => t.id === showPlaylistMenuId))}
-                tabIndex={0}
-              >
-                <span className="playlist-name">{playlist.name}</span>
-                <span className="playlist-count">
-                  {playlist.songCount !== undefined
-                    ? `${playlist.songCount} ${playlist.songCount === 1 ? 'canción' : 'canciones'}`
-                    : '0 canciones'
-                  }
-                </span>
-              </button>
-            ))
-            : Array.isArray(playlists) && playlists.map((playlist) => (
-              <button
-                key={playlist.id}
-                className="playlist-option"
-                onClick={() => handleAddToPlaylist(playlist.id, tracks.find(t => t.id === showPlaylistMenuId))}
-                tabIndex={0}
-              >
-                <span className="playlist-name">{playlist.name}</span>
-                <span className="playlist-count">0 canciones</span>
-              </button>
-            ))
-          }
+          {/* Usar la misma lógica que el Player para seleccionar las playlists */}
+          {(() => {
+            const playlists = playlistsWithCounts.length > 0 ? playlistsWithCounts : (state?.playlists || userPlaylists);
+            return playlists && playlists.length > 0;
+          })() && (playlistsWithCounts.length > 0 ? playlistsWithCounts : (state?.playlists || userPlaylists)).map((playlist) => (
+            <button
+              key={playlist.id}
+              className="playlist-option"
+              onClick={() => handleAddToPlaylist(playlist, tracks.find(t => t.id === showPlaylistMenuId))}
+              tabIndex={0}
+            >
+              <span className="playlist-name">{playlist.name}</span>
+              <span className="playlist-count">
+                {playlist.songCount !== undefined 
+                  ? `${playlist.songCount} ${playlist.songCount === 1 ? 'canción' : 'canciones'}`
+                  : (playlist.songs?.length || 0) + (playlist.songs?.length === 1 ? ' canción' : ' canciones')
+                }
+              </span>
+            </button>
+          ))}
+          
           <button
             className="playlist-option create-new-playlist"
             onClick={() => {
@@ -398,56 +456,99 @@ const Results = () => {
         document.body
       )}
 
-      {showNewPlaylistModal &&
-        createPortal(
-          <NewPlaylistModal
-            isOpen={showNewPlaylistModal}
-            onClose={() => setShowNewPlaylistModal(false)}
-            onCreate={async (name) => {
-              const token = localStorage.getItem("token");
-              const result = await createUserPlaylist(token, name);
+      {/* 🔧 MODAL - EXACTAMENTE IGUAL QUE EN PLAYER */}
+      {showNewPlaylistModal && createPortal(
+        <NewPlaylistModal
+          isOpen={showNewPlaylistModal}
+          onClose={() => setShowNewPlaylistModal(false)}
+          onCreate={async (name) => {
+            const token = localStorage.getItem("token");
+            const result = await createUserPlaylist(token, name);
 
-              if (result) {
-                console.log("Playlist creada desde botón +:", result);
-                refreshPlaylists();
-                setShowNewPlaylistModal(false);
+            if (result) {
+              console.log("✅ Results: Playlist creada desde results:", result);
 
-                if (selectedTrack) {
-                  const songData = {
-                    song_id: selectedTrack.id,
-                    name: selectedTrack.name,
-                    artist: selectedTrack.artist,
-                    audio_url: selectedTrack.audio,
-                    image_url: selectedTrack.image,
-                  };
+              // 🔧 EXACTAMENTE IGUAL QUE EN PLAYER
+              const newPlaylistWithCount = {
+                ...result,
+                songCount: 0, // Inicialmente 0
+                hasRealCount: true
+              };
 
-                  const addRes = await addSongToPlaylist(result.id, songData, token);
-                  if (addRes.ok) {
-                    alert("🎶 Playlist creada y canción agregada con éxito!");
-                    setSelectedTrack(null);
+              // Agregar la nueva playlist a ambos estados locales
+              setPlaylistsWithCounts(prev => [...prev, newPlaylistWithCount]);
+              setUserPlaylists(prev => [...prev, newPlaylistWithCount]);
 
-                    // Actualizar contador local para la nueva playlist
-                    setPlaylistsWithCounts(prev => [...prev, {
-                      ...result,
-                      songCount: 1,
-                      hasRealCount: true
-                    }]);
+              // Si hay una canción seleccionada, agregarla a la nueva playlist
+              if (selectedTrack) {
+                const songData = {
+                  song_id: selectedTrack.id,
+                  name: selectedTrack.name,
+                  artist: selectedTrack.artist,
+                  audio_url: selectedTrack.audio,
+                  image_url: selectedTrack.image,
+                };
 
-                    // ✅ Notificar al Player
-                    notifyPlaylistSongAdded(result.id, 'results');
+                const addRes = await addSongToPlaylist(result.id, songData, token);
+                if (addRes && addRes.ok) {
+                  alert("🎶 Playlist creada y canción agregada con éxito!");
+                  setSelectedTrack(null);
 
-                  } else {
-                    alert("Playlist creada, pero error al añadir la canción.");
-                  }
+                  // Actualizar el contador a 1 después de agregar la canción
+                  setPlaylistsWithCounts(prev =>
+                    prev.map(p =>
+                      p.id === result.id
+                        ? { ...p, songCount: 1 }
+                        : p
+                    )
+                  );
+
+                  setUserPlaylists(prev =>
+                    prev.map(p =>
+                      p.id === result.id
+                        ? { ...p, songCount: 1 }
+                        : p
+                    )
+                  );
+
+                  // Notificar a otros componentes
+                  notifyPlaylistSongAdded(result.id, 'results');
+
+                } else {
+                  alert("Playlist creada, pero error al añadir la canción.");
+                  setSelectedTrack(null);
                 }
               } else {
-                alert("No se pudo crear la playlist.");
+                // Si no hay canción seleccionada, notificar playlist vacía
+                console.log("🎵 Results: No selected track, notifying empty playlist creation");
+                const emptyPlaylist = {
+                  ...result,
+                  songCount: 0,
+                  hasRealCount: true
+                };
+                notifyPlaylistCreated(emptyPlaylist, 'results');
               }
-            }}
-          />,
-          document.body
-        )
-      }
+
+              // Después de todo, notificar la creación de playlist
+              const finalPlaylist = {
+                ...result,
+                songCount: selectedTrack ? 1 : 0,
+                hasRealCount: true
+              };
+              console.log("🎵 Results: Notifying playlist created:", finalPlaylist);
+              notifyPlaylistCreated(finalPlaylist, 'results');
+
+              // Refrescar para sincronizar con el backend
+              await refreshPlaylistsResults();
+
+              setShowNewPlaylistModal(false);
+            } else {
+              alert("No se pudo crear la playlist.");
+            }
+          }}
+        />,
+        document.body
+      )}
     </div>
   );
 };
