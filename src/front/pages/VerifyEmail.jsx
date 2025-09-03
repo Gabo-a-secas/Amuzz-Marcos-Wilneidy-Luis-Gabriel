@@ -18,7 +18,7 @@ const VerifyEmail = () => {
       console.log('🏠 BackendURL:', BackendURL);
       
       if (!token) {
-        console.error('❌ No se encontró token en la URL');
+        console.error('No se encontró token en la URL');
         setStatus('error');
         setMessage('Enlace de verificación inválido. Por favor revisa tu email e intenta de nuevo.');
         showError('Enlace de verificación inválido. Por favor revisa tu email e intenta de nuevo.');
@@ -26,7 +26,7 @@ const VerifyEmail = () => {
       }
 
       const url = `${BackendURL}/api/verify-email/${token}`;
-      console.log('🌐 URL de verificación:', url);
+      console.log('URL de verificación:', url);
 
       try {
         showInfo('Verificando tu email...', 'Verificación en Proceso');
@@ -41,19 +41,19 @@ const VerifyEmail = () => {
         console.log('📡 Response status:', response.status);
         
         const data = await response.json();
-        console.log('📦 Response data:', data);
+        console.log('Response data:', data);
 
         if (response.ok) {
           setStatus('success');
           const successMessage = data.message || '¡Email verificado exitosamente!';
           setMessage(successMessage);
-          showSuccess(`${successMessage} 🎉 Serás redirigido al inicio en unos segundos.`, 'Verificación Exitosa');
+          showSuccess(`${successMessage} Serás redirigido al inicio en unos segundos.`, 'Verificación Exitosa');
           
           setTimeout(() => {
             navigate('/');
           }, 3000);
         } else {
-          console.error('❌ Error del servidor:', data);
+          console.error('Error del servidor:', data);
           setStatus('error');
           
           let errorMessage = '';

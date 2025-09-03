@@ -2,7 +2,7 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from api.routes import api
-from api.stripe import stripe_bp  # 👈 importa aquí tu blueprint
+from api.stripe import stripe_bp 
 from api.models import db
 
 def create_app():
@@ -17,6 +17,6 @@ def create_app():
     CORS(app)
 
     app.register_blueprint(api, url_prefix="/api")
-    app.register_blueprint(stripe_bp)  # 👈 REGISTRA stripe_bp
+    app.register_blueprint(stripe_bp)  
 
     return app

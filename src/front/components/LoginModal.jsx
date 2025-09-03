@@ -88,7 +88,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
           onLoginSuccess(data.user);
         }
 
-        console.log('✅ Login exitoso para:', user.email);
+        console.log('Login exitoso para:', user.email);
         showSuccess(`¡Bienvenido de vuelta, ${user.username || user.email}! 🎵`);
         setFormData({ email: '', password: '' });
         onClose();
@@ -121,7 +121,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
         }
       }
     } catch (error) {
-      console.error('❌ Error de red en login:', error);
+      console.error('Error de red en login:', error);
       
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
         showError('No se puede conectar al servidor. Verifica tu conexión a internet.');
@@ -155,7 +155,7 @@ const LoginModal = ({ show, onClose, onLoginSuccess, onSwitchToRegister }) => {
 
   const handleResendEmail = (success) => {
     if (success) {
-      console.log('📧 Email de verificación reenviado');
+      console.log('Email de verificación reenviado');
       showSuccess('Email de verificación enviado correctamente');
     }
   };

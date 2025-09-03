@@ -134,7 +134,7 @@ const RegisterModal = ({ show, onClose, onRegisterSuccess }) => {
 
       if (response.ok) {
         showSuccess(
-          `¡Registro exitoso! 🎉 Te hemos enviado un email de verificación a ${formData.email}. Revisa tu bandeja de entrada.`,
+          `¡Registro exitoso! Te hemos enviado un email de verificación a ${formData.email}. Revisa tu bandeja de entrada.`,
           'Cuenta Creada'
         );
 

@@ -107,7 +107,7 @@ def verify_email(token):
         return jsonify({}), 200
 
     try:
-        print(f"🔍 Verificando token: {token}")
+        print(f"Verificando token: {token}")
 
         user = db.session.execute(
             db.select(User).filter_by(verification_token=token)
@@ -121,7 +121,7 @@ def verify_email(token):
 
         if user.verify_email(token):
             db.session.commit()
-            print(f"✅ Email verificado: {user.email}")
+            print(f"Email verificado: {user.email}")
             return jsonify({
                 "message": "Email verificado exitosamente",
                 "email": user.email,
@@ -132,7 +132,7 @@ def verify_email(token):
 
     except Exception as e:
         db.session.rollback()
-        print(f'❌ Error: {e}')
+        print(f'Error: {e}')
         return jsonify({"message": "Error al verificar email"}), 500
 
 

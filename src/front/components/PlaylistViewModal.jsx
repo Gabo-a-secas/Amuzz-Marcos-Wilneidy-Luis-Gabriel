@@ -18,7 +18,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
 
     // Debug: verificar que las funciones están disponibles
     useEffect(() => {
-        console.log('🔧 PlaylistViewModal hooks:', {
+        console.log('PlaylistViewModal hooks:', {
             showSuccess: typeof showSuccess,
             showError: typeof showError,
             openPlayer: typeof openPlayer
@@ -96,7 +96,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
         console.log('🎵 Intentando reproducir canción:', song);
         
         if (!song.audio_url) {
-            console.error('❌ La canción no tiene URL de audio:', song);
+            console.error('La canción no tiene URL de audio:', song);
             showError('Esta canción no tiene archivo de audio disponible');
             return;
         }
@@ -140,7 +140,7 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
             openPlayer(trackData, playlistData);
             showSuccess(`Reproduciendo: ${song.name} - ${song.artist} 🎵`);
         } catch (error) {
-            console.error('❌ Error al abrir player:', error);
+            console.error('Error al abrir player:', error);
             showError('Error al reproducir la canción');
         }
     };
@@ -190,26 +190,26 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
 
     const handleConfirmDelete = () => {
         if (confirmModal) {
-            console.log('✅ Usuario confirmó eliminación');
+            console.log('Usuario confirmó eliminación');
             handleDelete(confirmModal.id);
             setConfirmModal(null);
         }
     };
 
     const handleCancelDelete = () => {
-        console.log('❌ Usuario canceló eliminación');
+        console.log('Usuario canceló eliminación');
         setConfirmModal(null);
     };
 
     const confirmDelete = (id, itemName) => {
-        console.log('🗑️ Intentando eliminar:', { id, itemName });
+        console.log('Intentando eliminar:', { id, itemName });
         
         const isPlaylist = id === "playlist";
         const message = isPlaylist 
             ? `¿Estás seguro de que quieres eliminar la playlist completa "${playlistInfo?.name || 'esta playlist'}"? Esta acción no se puede deshacer.`
             : `¿Estás seguro de que quieres eliminar "${itemName}" de la playlist?`;
         
-        console.log('🗑️ Mostrando confirmación:', { message, isPlaylist });
+        console.log('Mostrando confirmación:', { message, isPlaylist });
         
         // Usar modal local en lugar de notificación global
         setConfirmModal({

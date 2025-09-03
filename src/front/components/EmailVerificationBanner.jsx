@@ -22,7 +22,7 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
 
     setIsResending(true);
     
-    console.log('🔄 Reenviando email de verificación para:', email);
+    console.log('Reenviando email de verificación para:', email);
 
     try {
       const response = await fetch(`${BackendURL}/api/resend-verification`, {
@@ -34,11 +34,11 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
       });
 
       const data = await response.json();
-      console.log('📡 Respuesta del servidor:', data);
+      console.log('Respuesta del servidor:', data);
 
       if (response.ok) {
         showSuccess(
-          `📧 Email de verificación enviado a ${email}. Revisa tu bandeja de entrada.`,
+          `Email de verificación enviado a ${email}. Revisa tu bandeja de entrada.`,
           'Email Enviado'
         );
         setResendCooldown(60);
@@ -62,7 +62,7 @@ const EmailVerificationBanner = ({ email, onResendEmail, onClose }) => {
         }
       }
     } catch (error) {
-      console.error('❌ Error de red:', error);
+      console.error('Error de red:', error);
       
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
         showError('No se puede conectar al servidor. Verifica tu conexión a internet.', 'Error de Conexión');

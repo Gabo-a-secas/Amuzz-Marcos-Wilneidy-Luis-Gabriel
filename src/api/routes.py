@@ -8,7 +8,7 @@ import secrets
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash
-from flask_jwt_extended import jwt_required, get_jwt_identity, JWTManager  # ← AÑADIR ESTA LÍNEA
+from flask_jwt_extended import jwt_required, get_jwt_identity, JWTManager
 from api.models import db, User, Playlist, PlaylistSong
 from api.utils import generate_sitemap, APIException
 
@@ -141,13 +141,13 @@ def resend_verification():
                     'wait_time': 86400 - time_left
                 }), 429
         
-        # ✅ GENERAR NUEVO TOKEN antes de enviar
+        # GENERAR NUEVO TOKEN antes de enviar
         user.verification_token = secrets.token_urlsafe(32)
         user.verification_token_expires = datetime.utcnow() + timedelta(hours=24)
         
         from api.email_service import send_verification_email
         if send_verification_email(user):
-            db.session.commit()  # ✅ Commit después de enviar email
+            db.session.commit()  # Commit después de enviar email
             return jsonify({'message': 'Verification email sent successfully'}), 200
         else:
             db.session.rollback()
@@ -158,7 +158,7 @@ def resend_verification():
         print(f'Resend verification error: {e}')
         return jsonify({'message': 'Failed to resend verification email'}), 500
 
-# --- MÚSICA ---
+# MÚSICA
 
 @api.route('/music/mood/<string:mood>', methods=['GET'])
 def get_music_by_mood(mood):
@@ -199,7 +199,7 @@ def get_music_by_mood(mood):
     except Exception as e:
         raise APIException(str(e), 500)
 
-# --- PLAYLISTS --
+# PLAYLISTS 
 
 
 #CREACION DE PLAYLIST
@@ -403,7 +403,7 @@ def add_song_to_playlist(playlist_id):
         traceback.print_exc()
         return jsonify({"error": f"Error al agregar canción: {str(e)}"}), 500
 
-#OBTENER CANCIONES DE PLAYLISTS???¿¿¿¿
+# OBTENER CANCIONES DE PLAYLISTS
 
 @api.route('/playlists/<int:playlist_id>/songs', methods=['GET'])
 @jwt_required()
