@@ -539,7 +539,7 @@ export const Player = memo(({ visible, onClose }) => {
             const result = await createUserPlaylist(token, name);
             
             if (result) {
-              console.log("✅ Playlist creada desde player:", result);
+              console.log("Playlist creada desde player:", result);
               
               await refreshPlaylists();
               

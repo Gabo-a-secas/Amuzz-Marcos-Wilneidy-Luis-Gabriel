@@ -49,21 +49,21 @@ const Results = () => {
       if (!token) return;
 
       try {
-        console.log("🔄 Results: Loading playlists with GUARANTEED counts...");
+        console.log("Results: Loading playlists with GUARANTEED counts...");
         const playlistsData = await getUserPlaylistsWithGuaranteedCounts(token);
-        console.log("📊 Results: Playlists with guaranteed counts received:", playlistsData);
+        console.log("Results: Playlists with guaranteed counts received:", playlistsData);
 
         if (playlistsData && playlistsData.length > 0) {
           setPlaylistsWithCounts(playlistsData);
 
           playlistsData.forEach(playlist => {
-            console.log(`📝 Results: Playlist "${playlist.name}": ${playlist.songCount || 0} canciones (${playlist.hasRealCount ? 'REAL' : 'FALLBACK'})`);
+            console.log(`Results: Playlist "${playlist.name}": ${playlist.songCount || 0} canciones (${playlist.hasRealCount ? 'REAL' : 'FALLBACK'})`);
           });
         } else {
-          console.log("⚠️ Results: No playlists data received");
+          console.log("Results: No playlists data received");
         }
       } catch (error) {
-        console.error("❌ Error loading playlists with counts:", error);
+        console.error("Error loading playlists with counts:", error);
         showError("Error al cargar las playlists");
         refreshPlaylists();
       }

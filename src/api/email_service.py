@@ -9,10 +9,10 @@ def send_verification_email(user):
         
         token = user.verification_token
         if not token:
-            print("❌ No hay token generado")
+            print("No hay token generado")
             return False
         
-        frontend_url = os.getenv('FRONTEND_URL', 'https://legendary-eureka-975rxjgrgp6v3xjrr-3000.app.github.dev')
+        frontend_url = os.getenv('FRONTEND_URL')
 
         verification_url = f"{frontend_url.rstrip('/')}/verify-email?token={token}"
         
@@ -46,9 +46,9 @@ def send_verification_email(user):
         """
         
         mail.send(msg)
-        print(f"✅ Email sent successfully to {user.email}")
+        print(f"Email sent successfully to {user.email}")
         return True
         
     except Exception as e:
-        print(f"❌ Error sending email: {e}")
+        print(f"Error sending email: {e}")
         return False
