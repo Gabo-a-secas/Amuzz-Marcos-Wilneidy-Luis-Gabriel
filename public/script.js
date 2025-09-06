@@ -1,5 +1,4 @@
 import * as THREE from "https://unpkg.com/three@0.178.0/build/three.module.js";
-
 const moodToVideoURL = {
   ansioso: "/videos/ansioso.mp4",
   feliz: "/videos/feliz.mp4",
@@ -8,21 +7,17 @@ const moodToVideoURL = {
   relajado: "/videos/relajado.mp4",
   triste: "/videos/triste.mp4",
 };
-
 const mood = new URLSearchParams(window.location.search).get("mood") || "feliz";
 const videoURL = moodToVideoURL[mood] || "/videos/feliz.mp4";
-
 const mouse = new THREE.Vector2();
-const mouseWorld = new THREE.Vector3();
+const mouseWorld = new THREE.Vector3(); 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.z = 5;
-
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 const container = document.getElementById("three-wrapper");
 if (container) container.appendChild(renderer.domElement);
-
 const video = document.createElement("video");
 video.src = videoURL;
 video.crossOrigin = "anonymous";
@@ -30,19 +25,15 @@ video.loop = true;
 video.muted = true;
 video.playsInline = true;
 video.play();
-
 const videoTexture = new THREE.VideoTexture(video);
 videoTexture.minFilter = THREE.LinearFilter;
 videoTexture.magFilter = THREE.LinearFilter;
-
 function getMoodColor() {
   return new THREE.Color(1, 1, 1);
 }
-
 function getGeometryByMood() {
   return new THREE.SphereGeometry(1.4, 64, 64).toNonIndexed();
 }
-
 function generateTriangleData(geometry) {
   const posAttr = geometry.getAttribute("position");
   const triangleCount = posAttr.count / 3;
@@ -57,12 +48,10 @@ function generateTriangleData(geometry) {
   }
   return { triangleData, triangleCount };
 }
-
 let geometry = getGeometryByMood();
 let { triangleData, triangleCount } = generateTriangleData(geometry);
 let triangleDataTexture = new THREE.DataTexture(triangleData, triangleCount, 1, THREE.RGBAFormat, THREE.FloatType);
 triangleDataTexture.needsUpdate = true;
-
 const material = new THREE.ShaderMaterial({
   transparent: true,
   depthWrite: false,
@@ -70,7 +59,7 @@ const material = new THREE.ShaderMaterial({
   uniforms: {
     uMouse: { value: mouseWorld },
     uTime: { value: 0 },
-    uRadius: { value: 1.5 },
+    uRadius: { value: 1.3 },
     uTriangleCount: { value: triangleCount },
     uData: { value: triangleDataTexture },
     uVideo: { value: videoTexture },
@@ -111,11 +100,9 @@ const material = new THREE.ShaderMaterial({
     }
   `,
 });
-
 const mesh = new THREE.Mesh(geometry, material);
 mesh.position.set(-0.2, 1.99, 0);
 scene.add(mesh);
-
 const waterGeo = new THREE.PlaneGeometry(6, 6);
 const waterMat = new THREE.ShaderMaterial({
   transparent: true,
@@ -147,7 +134,6 @@ const water = new THREE.Mesh(waterGeo, waterMat);
 water.rotation.x = -Math.PI / 2;
 water.position.y = -1;
 scene.add(water);
-
 scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 const dir = new THREE.DirectionalLight(0xfff1aa, 1.5);
 const dirHelper = new THREE.PointLight(0xffc0cb, 0.7, 6);
@@ -155,23 +141,31 @@ dir.position.set(5, 5, 5);
 dirHelper.position.set(-3, 2, 3);
 scene.add(dir);
 scene.add(dirHelper);
-
+const raycaster = new THREE.Raycaster();
+const pickSphere = new THREE.Sphere(new THREE.Vector3(), 1.5);
+const tmp = new THREE.Vector3();
 window.addEventListener("mousemove", (event) => {
-  const x = (event.clientX / window.innerWidth) * 2 - 1;
-  const y = -(event.clientY / window.innerHeight) * 2 + 1;
-  mouse.set(x, y);
-  const vec = new THREE.Vector3(mouse.x, mouse.y, 0.8).unproject(camera);
-  const dir = vec.sub(camera.position).normalize();
-  const dist = camera.position.length();
-  mouseWorld.copy(camera.position).add(dir.multiplyScalar(dist));
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  pickSphere.center.copy(mesh.getWorldPosition(tmp));
+  const hit = new THREE.Vector3();
+  if (raycaster.ray.intersectSphere(pickSphere, hit)) {
+    const local = mesh.worldToLocal(hit.clone());
+    mouseWorld.copy(local);
+  } else {
+    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -pickSphere.center.z);
+    const hit2 = new THREE.Vector3();
+    if (raycaster.ray.intersectPlane(plane, hit2)) {
+      mouseWorld.copy(mesh.worldToLocal(hit2.clone()));
+    }
+  }
 });
-
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
-
 function animate() {
   requestAnimationFrame(animate);
   material.uniforms.uTime.value += 0.01;
