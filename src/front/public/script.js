@@ -1,14 +1,14 @@
 import * as THREE from "https://unpkg.com/three@0.178.0/build/three.module.js";
 const moodToVideoURL = {
-  ansioso: "/videos/ansioso.mp4",
-  feliz: "/videos/feliz.mp4",
-  fiesta: "/videos/fiesta.mp4",
-  latino: "/videos/latino.mp4",
-  relajado: "/videos/relajado.mp4",
-  triste: "/videos/triste.mp4",
+  ansioso: "src/front/public/videos/ansioso.mp4",
+  feliz: "src/front/public/videos/feliz.mp4",
+  fiesta: "src/front/public/videos/fiesta.mp4",
+  latino: "src/front/public/videos/latino.mp4",
+  relajado: "src/front/public/videos/relajado.mp4",
+  triste: "src/front/public/videos/triste.mp4",
 };
 const mood = new URLSearchParams(window.location.search).get("mood") || "feliz";
-const videoURL = moodToVideoURL[mood] || "/videos/feliz.mp4";
+const videoURL = moodToVideoURL[mood] || "src/front/public/videos/feliz.mp4";
 const mouse = new THREE.Vector2();
 const mouseWorld = new THREE.Vector3(); 
 const scene = new THREE.Scene();

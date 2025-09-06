@@ -10,10 +10,10 @@ const PlaylistViewModal = ({ isOpen, onClose, playlistId, playlistName }) => {
     const [playlistInfo, setPlaylistInfo] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [confirmModal, setConfirmModal] = useState(null); // Modal de confirmación local
+    const [confirmModal, setConfirmModal] = useState(null); 
     const [deleting, setDeleting] = useState(false);
     const { refreshPlaylists } = useGlobalReducer();
-    const { showSuccess, showError } = useNotifications(); // Solo success y error globales
+    const { showSuccess, showError } = useNotifications(); 
     const { openPlayer } = usePlayer();
 
     // Debug: verificar que las funciones están disponibles
