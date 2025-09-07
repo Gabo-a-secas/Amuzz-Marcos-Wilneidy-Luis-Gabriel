@@ -1,20 +1,26 @@
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
-import './navBar-Modal.css';
-import './player.css';
-import 'animate.css';
-import { RouterProvider } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
+
 import { StoreProvider } from './hooks/useGlobalReducer';
 import { PlayerProvider } from './hooks/PlayerContext';
 import { NotificationProvider } from './NotificationProvider';
-import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom';
+
 import Layout from './pages/Layout';
 import Home from './pages/Home';
 import Mood from './pages/Mood';
 import Results from './pages/Results';
 import VerifyEmail from './pages/VerifyEmail';
 import Playlists from './components/Playlists';
+
+import 'animate.css';
+import './index.css';
+import './navBar-Modal.css';
+import './player.css';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -28,16 +34,14 @@ const router = createBrowserRouter(
   )
 );
 
-const Main = () => {
-  return (
-    <NotificationProvider>
-      <PlayerProvider>
-        <StoreProvider>
-          <RouterProvider router={router} />
-        </StoreProvider>
-      </PlayerProvider>
-    </NotificationProvider>
-  );
-};
+const Main = () => (
+  <NotificationProvider>
+    <PlayerProvider>
+      <StoreProvider>
+        <RouterProvider router={router} />
+      </StoreProvider>
+    </PlayerProvider>
+  </NotificationProvider>
+);
 
 ReactDOM.createRoot(document.getElementById('root')).render(<Main />);
