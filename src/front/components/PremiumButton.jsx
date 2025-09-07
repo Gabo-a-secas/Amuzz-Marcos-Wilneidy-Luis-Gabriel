@@ -35,7 +35,7 @@ const PremiumButton = () => {
       const data = JSON.parse(text);
 
       if (data.url) {
-        showSuccess('¡Redirigiendo a la página de pago! 💳', 'Sesión Creada');
+        showSuccess('¡Redirigiendo a la página de pago! ', 'Sesión Creada');
         // Pequeño delay para que el usuario vea la notificación antes de redireccionar
         setTimeout(() => {
           window.location.href = data.url;
