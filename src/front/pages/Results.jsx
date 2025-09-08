@@ -12,12 +12,12 @@ import useGlobalReducer from "../hooks/useGlobalReducer";
 import { notifyPlaylistSongAdded } from "../PlaylistEvents.js";
 
 const moodVideos = {
-  happy: "public/videos/feliz.mp4",
-  sad: "public/videos/triste.mp4",
-  anxiety: "public/videos/ansioso.mp4",
-  party: "public/videos/fiesta.mp4",
-  relax: "public/videos/relajado.mp4",
-  latin: "public/videos/latino.mp4",
+  happy: "videos/feliz.mp4",
+  sad: "videos/triste.mp4",
+  anxiety: "videos/ansioso.mp4",
+  party: "videos/fiesta.mp4",
+  relax: "videos/relajado.mp4",
+  latin: "videos/latino.mp4",
 };
 
 const Results = () => {

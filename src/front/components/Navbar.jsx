@@ -73,7 +73,7 @@ const Navbar = () => {
         <nav className={`navbar-sidebar ${loggedUser ? (isOpen ? 'open' : 'closed') : 'open'}`}>
           <div>
             <Link to="/" className="logo-link">
-              <img className="navbar-logo" src="public/amuzz_logo.png" alt="amuzz_logo" />
+              <img className="navbar-logo" src="amuzz_logo.png" alt="amuzz_logo" />
               <h2 className="navbar-amuzz">Amuzz</h2>
             </Link>
           </div>

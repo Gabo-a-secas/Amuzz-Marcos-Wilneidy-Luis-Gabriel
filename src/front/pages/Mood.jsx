@@ -20,7 +20,7 @@ const Mood = () => {
   return (
     <div className="video-background">
       <video autoPlay loop muted playsInline>
-        <source src="public/fondo.mp4" type="video/mp4" />
+        <source src="fondo.mp4" type="video/mp4" />
         Tu navegador no soporta video.
       </video>
 
