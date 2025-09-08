@@ -21,12 +21,12 @@ const Home = () => {
   useEffect(() => {
     const script = document.createElement("script");
     script.type = "module";
-    script.src = "src/front/public/script.js";
+    script.src = "public/script.js";
     script.async = true;
 
     const wrapper = document.getElementById("three-wrapper");
     if (wrapper) {
-      const existing = wrapper.querySelector("script[src='src/front/public/script.js']");
+      const existing = wrapper.querySelector("script[src='public/script.js']");
       if (!existing) wrapper.appendChild(script);
     }
 
@@ -55,7 +55,7 @@ const Home = () => {
       />
 
       <div className="contenido-encima z-10 pointer-events-auto">
-        <img className="home-logo" src="src/front/public/amuzz_logo.png" alt="amuzz_logo" />
+        <img className="home-logo" src="public/amuzz_logo.png" alt="amuzz_logo" />
         <div>
           <h4 className="title">Ready to set the mood?</h4>
         </div>

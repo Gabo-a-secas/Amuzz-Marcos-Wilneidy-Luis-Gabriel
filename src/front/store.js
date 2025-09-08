@@ -3,7 +3,7 @@ const API_BASE = import.meta.env.VITE_BACKEND_URL.replace(/\/+$/, "");
 export const initialStore = () => {
   const storedToken = localStorage.getItem("token") || null;
 
-  const rawUser = localStorage.getItem("user"); // <-- nombre correcto
+  const rawUser = localStorage.getItem("user"); 
   let user = null;
   if (rawUser && rawUser !== "undefined" && rawUser !== "null") {
     try {
