@@ -125,7 +125,7 @@ const Results = () => {
     if (!mood) return;
     
     setLoading(true);
-    fetch(`/api/music/mood/${mood}`)
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/music/mood/${mood}`)
       .then((res) => res.json())
       .then((data) => {
         setTracks(data);
